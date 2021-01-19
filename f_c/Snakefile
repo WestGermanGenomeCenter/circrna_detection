@@ -19,7 +19,7 @@ print(sample_names)
 
 
 
-rule reformat_circs:
+rule reformat_circs_fc:
     input:
         annotated_circs=config['prefix'] + "/f_c2_out/run_{name}/{name}.circ_candidates_auto.bed.annotated"
     params:
@@ -32,7 +32,7 @@ rule reformat_circs:
 
 #       my$err8 = `grep circ $sample_dir_out/run_$sample_name.sites.bed | grep -v chrM | python2.7 $scripts_dir/sum.py -2,3 | python2.7 $scripts_dir/scorethresh.py -16 1 | python2.7 $scripts_dir/scorethresh.py -15 2 | python2.7 $scripts_dir/scorethresh.py -14 2 | python2.7 $scripts_dir/scorethresh.py 7 2 | python2.7 $scripts_dir/scorethresh.py 8,9 35 | python2.7 $scripts_dir/scorethresh.py -17 100000 >$sample_dir_out/run_$sample_name.circ_candidates_auto.bed`;
 
-rule annotate_candidates:
+rule annotate_candidates_fc:
     input:
         filtered_circs=config['prefix'] + "/f_c2_out/run_{name}/{name}.circ_candidates_auto.bed"
     output:
@@ -54,7 +54,7 @@ rule filter_fc:
         "grep circ {input.bed_ci} | grep -v chrM | python2.7 {params.sum_script} -2,3 | python2.7 {params.score_script} -16 1 | python2.7 {params.score_script} -15 2 | python2.7 {params.score_script} -14 2 | python2.7 {params.score_script} 7 2 | python2.7 {params.score_script} 8,9 35 | python2.7 {params.score_script} -17 100000 >{output} "
 
 # bowtie2 --reorder --mm --score-min=C,-15,0 -q -x $bt_ref -U $sample_dir_out/auto_anchors.qfa 2> $sample_dir_out/auto_bt2_secondpass.log | python2.7 $scripts_dir/find_circ.py -G $fastqs_files/ -p $sample_name -s $sample_dir_out/run_$sample_name.sites.log > $sample_dir_out/run_$sample_name.sites.bed 2> $sample_dir_out/run_$sample_name.sites.reads
-rule align_anchors:
+rule align_anchors_fc:
     input:
         anchors=config['prefix'] + "/f_c2_out/run_{name}/{name}.auto_anchors.qfa"
     output:
@@ -72,7 +72,7 @@ rule align_anchors:
 
 
 
-rule get_anchors:
+rule get_anchors_fc:
     input:
         unmapped=config['prefix'] + "/f_c2_out/run_{name}/{name}.unmapped.auto.bam"
     output:
@@ -83,7 +83,7 @@ rule get_anchors:
         "python 2.7 {params.fc_script} {input} >{output}"
 
 
-rule prepare_remapping:
+rule prepare_remapping_fc:
     input:
         sorted_bam=config['prefix'] + "/f_c2_out/run_{name}/{name}.auto.bam"
     output:
@@ -95,7 +95,7 @@ rule prepare_remapping:
 #       my$err4 = `samtools view -@ $threads -hf 4 $sample_dir_out/$sample_name.auto.bam | samtools view -@ $threads -Sb - > $sample_dir_out/unmapped_auto.bam`;
 
 
-rule sort_bam:
+rule sort_bam_fc:
     input:
         bam=config['prefix'] + "/f_c2_out/run_{name}/temp.bam"
     output:
@@ -106,7 +106,7 @@ rule sort_bam:
         "samtools sort @ {threads} -O bam -o {output} {input}"
 # samtools sort -@ $threads -O bam -o $sample_dir_out/$sample_name.auto.bam $sample_dir_out/temp.bam
 # now all the samtools fun
-rule create_bam:
+rule create_bam_fc:
     input:
         sam=config['prefix'] + "/f_c2_out/run_{name}/temp.sam"
     output:
@@ -116,7 +116,7 @@ rule create_bam:
     shell:
         "samtools view -@ {threads} -hbuS -o {output} {input}"
 
-rule map_primary_bt2:
+rule map_primary_bt2_fc:
     input:
         dir_check=config['prefix'] + "/f_c2_out/run_{name}/chk.tx",
         lane_1=config['prefix'] + "/{name}" + config["lane_ident1"] + ".fastq",

@@ -24,7 +24,7 @@ print(sample_names)
 
 # make an extra dcc file?
 # make the linear stuff work later - first the raw pipeline
-rule cleanup_annotation:
+rule cleanup_annotation_dcc:
   input:
     config['prefix'] + "/dcc_2_out/run_{name}" + "/CircRNACount_annotated.tsv"
   output:
@@ -39,7 +39,7 @@ rule cleanup_annotation:
 
 
 
-rule annotate_cleanfile:
+rule annotate_cleanfile_dcc:
   input:
     config['prefix'] + "/dcc_2_out/run_{name}" + "/CircRNACount_clean"
   output:
@@ -81,7 +81,7 @@ rule execute_dcc:
 ##### NEEED TO CONTINUE HERE
 
 # for DCC we need 3 alignments, for each read pair after the initial mapping
-rule align_mate2:
+rule align_mate2_dcc:
   input:
     lane_2=config['prefix'] + "/" + "{name}" + config["lane_ident2"] + ".fastq",
     genome=config["genome_STAR_hg38"],
@@ -100,7 +100,7 @@ rule align_mate2:
 
 
 
-rule align_mate1:
+rule align_mate1_dcc:
   input:
     lane_1=config['prefix'] + "/" + "{name}" + config["lane_ident1"] + ".fastq",
     genome=config["genome_STAR_hg38"],
