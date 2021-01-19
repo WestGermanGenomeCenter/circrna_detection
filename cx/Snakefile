@@ -13,18 +13,18 @@ print(sample_names)
 
 #rule all: # extend this rule to include outfiles from the last step respectively
 #  input:
-#    expand(config['prefix'] + "/cx_2_out/run_{name}" + "/processed_run_{name}.tsv",name=sample_names)
+#    expand(config['prefix'] + "/cx2_out/run_{name}" + "/processed_run_{name}.tsv",name=sample_names)
 
 
 # perl $infile_dir/circexplorer1_auto/circexplorer1_out_reader.pl $exec_dir/cx2_out_$sample_name.tsv $exec_dir/parsed_cx2_out_$sample_name.tsv $sample_name
 rule cleanup_cx2anot:
     input:
-        cx2_out=config['prefix'] + "/cx_2_out/run_{name}" + "/cx2_out.tsv"
+        cx2_out=config['prefix'] + "/cx2_out/run_{name}" + "/cx2_out.tsv"
     params:
         sample_name="{name}",
         pl_exec=config['pl_script_dir'] + "/circexplorer1_out_reader.pl"
     output:
-        processed_fin=config['prefix'] + "/cx_2_out/run_{name}" + "/processed_run_{name}.tsv"
+        processed_fin=config['prefix'] + "/cx2_out/run_{name}" + "/processed_run_{name}.tsv"
     shell:
         "perl {params.pl_exec} {input} {output} {params.sample_name}"
 
@@ -32,13 +32,13 @@ rule cleanup_cx2anot:
 #  -r $bowtie_index_dir/hg_38_ref_fetched.txt -g $bowtie_index_dir/hg38_full.fa -b $exec_dir/back_spliced_junction.bed -o $exec_dir/cx2_out_$sample_name.tsv`;
 rule annotate_circs_cx2:
     input:
-        junc=config['prefix'] + "/cx_2_out/run_{name}" + "/back_spliced_junction.bed"
+        junc=config['prefix'] + "/cx2_out/run_{name}" + "/back_spliced_junction.bed"
     params:
         refseq_file=config['refseq_anot_file'],
         annotate_cmd=config['cx_annotate_command'],
         fasta_files=config['fasta_ref']
     output:
-        cx2_out=config['prefix'] + "/cx_2_out/run_{name}" + "/cx2_out.tsv"
+        cx2_out=config['prefix'] + "/cx2_out/run_{name}" + "/cx2_out.tsv"
     shell:
         "{params.annotate_cmd} -r {params.refseq_file} -g {params.fasta_files} -b {input} -o {output}"
 
@@ -47,12 +47,12 @@ rule annotate_circs_cx2:
 # following the cx2 flow
 rule run_cx2:
     input:
-        chim_out=config['prefix'] + "/cx_2_out/run_{name}" + "/Chimeric.out.junction"
+        chim_out=config['prefix'] + "/cx2_out/run_{name}" + "/Chimeric.out.junction"
     params:
         cx_parse_command=config['cx_parse_command'],
-        log=config['prefix'] + "/cx_2_out/run_{name}" + "/CIRCexplorer2_parse.log"
+        log=config['prefix'] + "/cx2_out/run_{name}" + "/CIRCexplorer2_parse.log"
     output:
-        junc=config['prefix'] + "/cx_2_out/run_{name}" + "/back_spliced_junction.bed"
+        junc=config['prefix'] + "/cx2_out/run_{name}" + "/back_spliced_junction.bed"
     shell:
         "{params.cx_parse_command} {input.chim_out} >{params.log}"
 
@@ -63,14 +63,14 @@ rule align_primary_STAR_CX:
     lane_1= config['prefix'] + "/" + "{name}" + config["lane_ident1"] + ".fastq",
     lane_2= config['prefix'] + "/" + "{name}" + config["lane_ident2"] + ".fastq",
     genome= config["genome_STAR_hg38"],
-    dir_check= config['prefix'] + "/cx_2_out/run_{name}/chk.tx"
+    dir_check= config['prefix'] + "/cx2_out/run_{name}/chk.tx"
   params:
-    processing_dir= config['prefix'] + "/cx_2_out/run_{name}/",
+    processing_dir= config['prefix'] + "/cx2_out/run_{name}/",
     outfile_name="{name}"
   threads: 12
 
   output:
-    config['prefix'] + "/cx_2_out/run_{name}" + "/Chimeric.out.junction"
+    config['prefix'] + "/cx2_out/run_{name}" + "/Chimeric.out.junction"
 
   conda:
         "/gpfs/project/daric102/circs_hilbert_scratchgs/snakemake_tests/envs/hg38_STAR.yaml"
@@ -88,9 +88,9 @@ rule prepare_files_cx2:
         lane_1=config['prefix'] + "/{name}" + config["lane_ident1"] + ".fastq",
         lane_2=config['prefix'] + "/{name}" + config["lane_ident2"] + ".fastq",
     params:
-        processing_dir= config['prefix'] + "/cx_2_out/run_{name}/",
+        processing_dir= config['prefix'] + "/cx2_out/run_{name}/",
     output:
-        config['prefix'] + "/cx_2_out/run_{name}/chk.tx"
+        config['prefix'] + "/cx2_out/run_{name}/chk.tx"
 
     shell:
         "mkdir -p {params} && cd {params} && touch {output}"

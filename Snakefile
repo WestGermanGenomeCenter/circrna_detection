@@ -19,6 +19,6 @@ rule all: # extend this rule to include outfiles from the last step respectively
 
 
 
-include:"cx/cx.smk"
-include:"dcc/dcc.smk"
-include:"f_c/f_c.smk"
+include:"cx/Snakefile"
+include:"dcc/Snakefile"
+include:"f_c/Snakefile"
