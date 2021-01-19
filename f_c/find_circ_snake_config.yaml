@@ -1,0 +1,20 @@
+bowtie2_ref:
+      "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/pipelines/hg19"
+prefix:
+ "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs"
+lane_ident1:
+ "_1"
+lane_ident2:
+ "_2"
+threads:
+ 12
+fc_scripts_dir:
+  "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/pipelines"
+chrom_fastqs:
+  "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/pipelines/upd/all_chroms"
+annotation_bed:
+  "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/pipelines/upd/hg38_ucsc_refseq.bed"
+strict:
+    "0"
+perl_scripts:
+  "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/auto_find_circ"
