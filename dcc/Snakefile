@@ -1,14 +1,14 @@
 
 configfile: "dcc/dcc_config.yaml"
-samplesfile = "samples.tsv"
+samplesfile = "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/samples.tsv"
 #
 ####  trying to load the samplesfile into a list
 import pandas as pd
 
 samples_df = pd.read_table(samplesfile).set_index("samples", drop=False)
 sample_names = list(samples_df['samples'])
-print("will now execute DCC hg38 on samples:")
-print(sample_names)
+#print("will now execute DCC hg38 on samples:")
+#print(sample_names)
 
 
 #rule all: # extend this rule to include outfiles from the last step respectively
@@ -24,7 +24,7 @@ print(sample_names)
 
 # make an extra dcc file?
 # make the linear stuff work later - first the raw pipeline
-rule cleanup_annotation_dcc:
+rule _dcc_h_cleanup_annotation:
   input:
     config['prefix'] + "/dcc_2_out/run_{name}" + "/CircRNACount_annotated.tsv"
   output:
@@ -39,7 +39,7 @@ rule cleanup_annotation_dcc:
 
 
 
-rule annotate_cleanfile_dcc:
+rule _dcc_g_annotate_cleanfile:
   input:
     config['prefix'] + "/dcc_2_out/run_{name}" + "/CircRNACount_clean"
   output:
@@ -49,7 +49,7 @@ rule annotate_cleanfile_dcc:
   shell:
     "bedtools window -a {input} -b {params.bed_file} -w 1 >{output}"
 
-rule cleanup_circfile:
+rule _dcc_f_cleanup_circfile:
   input:
     config['prefix'] + "/dcc_2_out/run_{name}" + "/CircRNACount"
   output:
@@ -57,7 +57,7 @@ rule cleanup_circfile:
   shell:
     "cat {input} | sed '1d' >{output}"
 
-rule execute_dcc:
+rule _dcc_e_execute_dcc:
     input:
       both_lanes=config['prefix'] + "/dcc_2_out/run_{name}" + "/{name}_bothlanes.Chimeric.out.junction",
       lane_1=config['prefix'] + "/dcc_2_out/run_{name}" + "/"+"{name}"+ config['lane_ident1'] +".Chimeric.out.junction",
@@ -81,7 +81,7 @@ rule execute_dcc:
 ##### NEEED TO CONTINUE HERE
 
 # for DCC we need 3 alignments, for each read pair after the initial mapping
-rule align_mate2_dcc:
+rule _dcc_d2_align_mate2:
   input:
     lane_2=config['prefix'] + "/" + "{name}" + config["lane_ident2"] + ".fastq",
     genome=config["genome_STAR_hg38"],
@@ -100,7 +100,7 @@ rule align_mate2_dcc:
 
 
 
-rule align_mate1_dcc:
+rule _dcc_d1_align_mate1:
   input:
     lane_1=config['prefix'] + "/" + "{name}" + config["lane_ident1"] + ".fastq",
     genome=config["genome_STAR_hg38"],
@@ -123,7 +123,7 @@ rule align_mate1_dcc:
 
 
 
-rule align_primary_STAR_DCC:
+rule _dcc_c_align_primary_STAR_DCC:
   input:
     lane_1= config['prefix'] + "/" + "{name}" + config["lane_ident1"] + ".fastq",
     lane_2= config['prefix'] + "/" + "{name}" + config["lane_ident2"] + ".fastq",
@@ -143,7 +143,7 @@ rule align_primary_STAR_DCC:
         "STAR --runThreadN {threads} --genomeDir {input.genome} --outSAMtype BAM SortedByCoordinate --readFilesIn {input.lane_1} {input.lane_2} --outFileNamePrefix {params.outfile_name} --outReadsUnmapped Fastx --outSJfilterOverhangMin 15 15 15 15 --alignSJoverhangMin 15 --alignSJDBoverhangMin 15 --outFilterMultimapNmax 20 --outFilterScoreMin 1 --outFilterMatchNmin 1 --outFilterMismatchNmax 2 --chimSegmentMin 15 --chimScoreMin 15 --chimScoreSeparation 10 --chimJunctionOverhangMin 15 --limitBAMsortRAM 512000000000 &>STAR_init_map1_logfile.log"
 # $star_command --runThreadN $threads --config["genome"]Dir $bt_ref --outSAMtype BAM SortedByCoordinate --readFilesIn $infile_dir/$lineonefile $infile_dir/$linetwofile --outFileNamePrefix $config["samples"]_name. --outReadsUnmapped Fastx --outSJfilterOverhangMin 15 15 15 15 --alignSJoverhangMin 15 --alignSJDBoverhangMin 15 --outFilterMultimapNmax 20 --outFilterScoreMin 1 --outFilterMatchNmin 1 --outFilterMismatchNmax 2 --chimSegmentMin 15 --chimScoreMin 15 --chimScoreSeparation 10 --chimJunctionOverhangMin 15 --limitBAMsortRAM 512000000000\n" ;
 
-rule prepare_files_dcc:
+rule _dcc_b_prepare_files_dcc:
     # unzip if needed,
     # create output dir
     #eed_unpack=0
@@ -162,7 +162,7 @@ rule prepare_files_dcc:
 
 
 
-rule unzip_gz_dcc:
+rule _dcc_a_unzip_gz:
     input:
         lane_1=config['prefix'] + "/{name}" + config["lane_ident1"] + ".fastq",
         lane_2=config['prefix'] + "/{name}" + config["lane_ident2"] + ".fastq",

@@ -10,3 +10,25 @@ lane_ident2:
  "_2"
 threads:
  12
+perl_script_dir:
+  "scripts" # need to sorrect this- might need full parth here
+run_name:
+  "test_srr_2samples"
+mm1_script:
+  "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/matrixmaker-V4.pl"
+mm1_refseq_file:
+  "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/auto_find_circ/refseq_to_gene_names_hg38.tsv"
+mm1_circ_bedfile:
+  "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/auto_find_circ/hg_38_circbase_known_circs.bed"
+mm2_script:
+  "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/auto_find_circ/matrixtwo_V4.pl"
+micrornas_file:
+  "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/pipelines/miRNA_circRNA_ineractions.txt"
+circbank_coding_file:
+  "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/pipelines/circRNA_protein_coding_potential.txt"
+hallmarks_file:
+  "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/auto_find_circ/hallmark_genes.tsv"
+ensembl_file:
+  "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/auto_find_circ/mart_export_ensembl_gene_desc.txt"
+mapping_script:
+  "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/auto_find_circ/read_mapping.pl"

@@ -1,14 +1,14 @@
 # cx2 exec smk file
 configfile: "cx/cx_conf.yaml"
-samplesfile = "samples.tsv"
+samplesfile = "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/samples.tsv"
 
 ####  trying to load the samplesfile into a list
 import pandas as pd
 
 samples_df = pd.read_table(samplesfile).set_index("samples", drop=False)
 sample_names = list(samples_df['samples'])
-print("will now execute cx hg38 on samples:")
-print(sample_names)
+#print("will now execute cx hg38 on samples:")
+#print(sample_names)
 
 
 #rule all: # extend this rule to include outfiles from the last step respectively
@@ -17,7 +17,7 @@ print(sample_names)
 
 
 # perl $infile_dir/circexplorer1_auto/circexplorer1_out_reader.pl $exec_dir/cx2_out_$sample_name.tsv $exec_dir/parsed_cx2_out_$sample_name.tsv $sample_name
-rule cleanup_cx2anot:
+rule _cx_f_cleanup_cx2anot:
     input:
         cx2_out=config['prefix'] + "/cx2_out/run_{name}" + "/cx2_out.tsv"
     params:
@@ -30,7 +30,7 @@ rule cleanup_cx2anot:
 
 # $cx2_command_exec -r $refseq_file -g $fastqs_files -b $sample_dir_out/back_spliced_junction.bed -o $sample_dir_out/$sample_name.processed.tsv\n
 #  -r $bowtie_index_dir/hg_38_ref_fetched.txt -g $bowtie_index_dir/hg38_full.fa -b $exec_dir/back_spliced_junction.bed -o $exec_dir/cx2_out_$sample_name.tsv`;
-rule annotate_circs_cx2:
+rule _cx_e_annotate_circs:
     input:
         junc=config['prefix'] + "/cx2_out/run_{name}" + "/back_spliced_junction.bed"
     params:
@@ -45,7 +45,7 @@ rule annotate_circs_cx2:
 
 
 # following the cx2 flow
-rule run_cx2:
+rule _cx_d_run_cx2:
     input:
         chim_out=config['prefix'] + "/cx2_out/run_{name}" + "/Chimeric.out.junction"
     params:
@@ -58,7 +58,7 @@ rule run_cx2:
 
 
 
-rule align_primary_STAR_CX:
+rule _cx_c_align_primary_STAR:
   input:
     lane_1= config['prefix'] + "/" + "{name}" + config["lane_ident1"] + ".fastq",
     lane_2= config['prefix'] + "/" + "{name}" + config["lane_ident2"] + ".fastq",
@@ -78,7 +78,7 @@ rule align_primary_STAR_CX:
         "STAR --runThreadN {threads} --genomeDir {input.genome} --readFilesIn {input.lane_1} {input.lane_2} --chimSegmentMin 10 --limitBAMsortRAM 512000000000 "
 #
 
-rule prepare_files_cx2:
+rule _cx_b_prepare_files:
     # unzip if needed,
     # create output dir
     #eed_unpack=0
@@ -97,7 +97,7 @@ rule prepare_files_cx2:
 
 
 
-rule unzip_gz_cx2:
+rule _cx_a_unzip_gz:
     input:
         lane_1=config['prefix'] + "/{name}" + config["lane_ident1"] + ".fastq",
         lane_2=config['prefix'] + "/{name}" + config["lane_ident2"] + ".fastq",
