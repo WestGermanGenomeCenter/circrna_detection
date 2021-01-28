@@ -2,21 +2,11 @@
 configfile: "cx/cx_conf.yaml"
 samplesfile = "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/samples.tsv"
 
-####  trying to load the samplesfile into a list
 import pandas as pd
 
 samples_df = pd.read_table(samplesfile).set_index("samples", drop=False)
 sample_names = list(samples_df['samples'])
-#print("will now execute cx hg38 on samples:")
-#print(sample_names)
 
-
-#rule all: # extend this rule to include outfiles from the last step respectively
-#  input:
-#    expand(config['prefix'] + "/cx2_out/run_{name}" + "/processed_run_{name}.tsv",name=sample_names)
-
-
-# perl $infile_dir/circexplorer1_auto/circexplorer1_out_reader.pl $exec_dir/cx2_out_$sample_name.tsv $exec_dir/parsed_cx2_out_$sample_name.tsv $sample_name
 rule _cx_f_cleanup_cx2anot:
     input:
         cx2_out=config['prefix'] + "/cx2_out/run_{name}" + "/cx2_out.tsv"
@@ -28,8 +18,6 @@ rule _cx_f_cleanup_cx2anot:
     shell:
         "perl {params.pl_exec} {input} {output} {params.sample_name}"
 
-# $cx2_command_exec -r $refseq_file -g $fastqs_files -b $sample_dir_out/back_spliced_junction.bed -o $sample_dir_out/$sample_name.processed.tsv\n
-#  -r $bowtie_index_dir/hg_38_ref_fetched.txt -g $bowtie_index_dir/hg38_full.fa -b $exec_dir/back_spliced_junction.bed -o $exec_dir/cx2_out_$sample_name.tsv`;
 rule _cx_e_annotate_circs:
     input:
         junc=config['prefix'] + "/cx2_out/run_{name}" + "/back_spliced_junction.bed"
@@ -79,11 +67,7 @@ rule _cx_c_align_primary_STAR:
 #
 
 rule _cx_b_prepare_files:
-    # unzip if needed,
-    # create output dir
-    #eed_unpack=0
-    # create config["samples"] between-files dir
-    # go to processing dir
+
     input:
         lane_1=config['prefix'] + "/{name}" + config["lane_ident1"] + ".fastq",
         lane_2=config['prefix'] + "/{name}" + config["lane_ident2"] + ".fastq",

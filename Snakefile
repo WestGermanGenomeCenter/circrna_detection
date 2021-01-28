@@ -5,37 +5,7 @@ import pandas as pd
 
 samples_df = pd.read_table(samplesfile).set_index("samples", drop=False)
 sample_names = list(samples_df['samples'])
-#print("will now execute DCC, f_c and CX2 hg38 on samples:")
-#print(sample_names)
 
-
-
-
-
-
-# mm2 creation :
-#perl /gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/auto_find_circ/matrixtwo_V4.pl --i f_c2_out/test_array_mb30/fc2_matrix_infile_3.mat1 --o f_c2_out/test_array_mb30/fc2_matrix_infile_3.mat2 --excl_cb 1
-#perl /gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/auto_find_circ/matrixtwo_V4.pl --i dcc_2_out/test_array_mb30/dcc2_matrix_infile_3.mat1 --o dcc_2_out/test_array_mb30/dcc2_matrix_infile_3.mat2 --excl_cb 1
-#perl /gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/auto_find_circ/matrixtwo_V4.pl --i cx2_out/test_array_mb30/cx2_matrix_infile_3.mat1 --o cx2_out/test_array_mb30/cx2_matrix_infile_3.mat2 --excl_cb 1
-
-# file paths to change:
-#my$circbank_mirRNA_file="/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/pipelines/miRNA_circRNA_ineractions.txt";
-#my$circbank_coding_file="/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/pipelines/circRNA_protein_coding_potential.txt";
-#my$hallmark_mapping_file="/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/auto_find_circ/hallmark_genes.tsv"; # unusual mapping file, not one gene per line
-#my$ensembl_file="/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/auto_find_circ/mart_export_ensembl_gene_desc.txt";
-#my$logfile="/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/logfile_auto.log";
-#my$mapping_script="/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/auto_find_circ/read_mapping.pl";
-
-# parameter names
-#GetOptions('mirRNA_file|m=s' => \$circbank_mirRNA_file,'circbank_coding_file|c=s' => \$circbank_coding_file,'hallmark_mapping_file|h=s' => \$hallmark_mapping_file,'ensembl_file|e=s' => \$ensembl_file,'logfile|l=s' => \$logfile,'mapping_script|n=s' => \$mapping_script,'infile|i=s' => \$linfile,'outfile|o=s' => \$outfile,'exclude_circbank|excl_cb=i' => \$exclude_circbank) or warn "Using default parameters! \n";
-
-
-# from here on the post_run guide need to be implemented- try first to get this to run so far
-# do 3 rules that do exactly the same , one job for each pipeline outfile
-
-
-# to make :
-# perl /gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/auto_find_circ/matrixtwo_V4.pl --i f_c2_out/test_array_mb30/fc2_matrix_infile_3.mat1 --o f_c2_out/test_array_mb30/fc2_matrix_infile_3.mat2 --excl_cb 1
 
 rule all:
     input:
