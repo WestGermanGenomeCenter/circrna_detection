@@ -114,79 +114,38 @@ rule _r06a_run_matrixmaker_fc:
 rule _r05c_collect_tsvs_cx: # extend this rule to include outfiles from the last step respectively
     input:
         cx2_outfiles=expand(config['prefix'] + "/cx2_out/run_{name}" + "/processed_run_{name}.tsv",name=sample_names),
-        #fc2_outfiles=expand(config['prefix'] + "/f_c2_out/run_{name}" + "/processed_run_{name}.tsv",name=sample_names),
-        #dc2_outfiles=expand(config['prefix'] + "/dcc_2_out/run_{name}" + "/processed_run_{name}.tsv",name=sample_names),
         reads_per_samplefile=config["prefix"]+"/reads_per_sample_"+config['run_name']+".tsv" # to get the preparations to be executed
     params:
         run_name=config['run_name']
     output:
-        #all_fc2_out_catted=config['prefix']+"/f_c2_out/"+config['run_name']+"/all_"+config['run_name']+"_fc2_tsvs.tx",
         all_cx2_out_catted=config['prefix']+"/cx2_out/"+config['run_name']+"/all_"+config['run_name']+"_cx2_tsvs.tx"
-        #all_dcc2_out_catted=config['prefix']+"/dcc_2_out/"+config['run_name']+"/all_"+config['run_name']+"_dcc2_tsvs.tx"
     shell:
         "cat {input.cx2_outfiles} >{output.all_cx2_out_catted}"
 
 rule _r05b_collect_tsvs_dc: # extend this rule to include outfiles from the last step respectively
     input:
-        #cx2_outfiles=expand(config['prefix'] + "/cx2_out/run_{name}" + "/processed_run_{name}.tsv",name=sample_names),
-        #fc2_outfiles=expand(config['prefix'] + "/f_c2_out/run_{name}" + "/processed_run_{name}.tsv",name=sample_names),
         dc2_outfiles=expand(config['prefix'] + "/dcc_2_out/run_{name}" + "/processed_run_{name}.tsv",name=sample_names),
         reads_per_samplefile=config["prefix"]+"/reads_per_sample_"+config['run_name']+".tsv" # to get the preparations to be executed
     params:
         run_name=config['run_name']
     output:
-    #    all_fc2_out_catted=config['prefix']+"/f_c2_out/"+config['run_name']+"/all_"+config['run_name']+"_fc2_tsvs.tx",
-    #    all_cx2_out_catted=config['prefix']+"/cx2_out/"+config['run_name']+"/all_"+config['run_name']+"_cx2_tsvs.tx",
         all_dcc2_out_catted=config['prefix']+"/dcc_2_out/"+config['run_name']+"/all_"+config['run_name']+"_dcc2_tsvs.tx"
     shell:
         "cat {input.dc2_outfiles} >{output.all_dcc2_out_catted}"
 
 rule _r05a_collect_tsvs_fc: # extend this rule to include outfiles from the last step respectively
     input:
-        #cx2_outfiles=expand(config['prefix'] + "/cx2_out/run_{name}" + "/processed_run_{name}.tsv",name=sample_names),
         fc2_outfiles=expand(config['prefix'] + "/f_c2_out/run_{name}" + "/processed_run_{name}.tsv",name=sample_names),
-        #dc2_outfiles=expand(config['prefix'] + "/dcc_2_out/run_{name}" + "/processed_run_{name}.tsv",name=sample_names),
         reads_per_samplefile=config["prefix"]+"/reads_per_sample_"+config['run_name']+".tsv" # to get the preparations to be executed
     params:
         run_name=config['run_name']
     output:
         all_fc2_out_catted=config['prefix']+"/f_c2_out/"+config['run_name']+"/all_"+config['run_name']+"_fc2_tsvs.tx",
-        #all_cx2_out_catted=config['prefix']+"/cx2_out/"+config['run_name']+"/all_"+config['run_name']+"_cx2_tsvs.tx",
-        #all_dcc2_out_catted=config['prefix']+"/dcc_2_out/"+config['run_name']+"/all_"+config['run_name']+"_dcc2_tsvs.tx"
+
     shell:
         "cat {input.fc2_outfiles} >{output.all_fc2_out_catted}"
 
-# start with collecting reads information, utilize perl perl_scripts_di
 
-
-# normalization of matrixtwo values
-
-# matrixtwo execution x 3
-
-# matrixmaker execution x3
-
-# cleanup/correct .tsv files
-
-# cat the tsvs into one
-
-# collect all outfiles in dir for each pipeline
-
-
-
-
-
-
-# execute 3x main pipeline
-
-
-
-
-
-# make dir where all outfiles will be collected
-
-# move all .fastqs to /repo/circs dir
-
-# perl $perl_scripts_dir/fastqs_to_reads_per_sample.pl --i reads_infile_$proj_name.tx --m $paired_single_end_param >reads_per_sample_$proj_name.tsv
 rule _r04_count_reads_fastqs:
     # make another new script
     input:
@@ -215,9 +174,7 @@ rule _r03_create_infile:
         infile=config["prefix"]+"/samples.tsv" # workaround for now, delete the old infile before a new one get created
     shell:
         " rm {output} && perl {params.perl_script} --i {input} --l1 {params.lane_1ident} --l2 {params.lane_2ident} >{output}"
-# ls -1f *.fastq>fastq_list_$proj_name.tx
 
-# create dir where output files get copied over
 rule _r02_create_fastq_list:
     input:
         fc_2_chk_to_create=config["prefix"]+"/f_c2_out/"+config['run_name']+"/chk.tx",
