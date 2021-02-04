@@ -1,0 +1,321 @@
+{
+    "__default__" :
+    {
+      "account" : "daric102",
+      "queue" : "default",
+      "nodes" : 1,
+      "time" : "00:59:59",
+      "mem" : "12GB",
+      "ncpus" : "12",
+      "arch" : "ivybridge",
+    },
+
+    "_r07c_run_matrix2_cx" :
+    {
+      "mem" : "16GB",
+      "ncpus" : "1",
+      "time" : "1:59:59",
+      "arch" : "ivybridge",
+    },
+
+    "_r07b_run_matrix2_dc" :
+    {
+      "mem" : "16GB",
+      "ncpus" : "1",
+      "time" : "1:59:59",
+      "arch" : "ivybridge",
+    },
+
+    "_r07a_run_matrix2_fc" :
+    {
+      "mem" : "16GB",
+      "ncpus" : "1",
+      "time" : "1:59:59",
+      "arch" : "ivybridge",
+    },
+
+    "_r06c_run_matrixmaker_cx" :
+    {
+      "mem" : "16GB",
+      "ncpus" : "12",
+      "time" : "47:59:59",
+      "arch" : "ivybridge",
+    },
+    "_r06b_run_matrixmaker_dc" :
+    {
+      "mem" : "16GB",
+      "ncpus" : "12",
+      "time" : "47:59:59",
+      "arch" : "ivybridge",
+    },
+    "_r06a_run_matrixmaker_fc" :
+    {
+      "mem" : "16GB",
+      "ncpus" : "12",
+      "time" : "47:59:59",
+      "arch" : "ivybridge",
+    },
+    "_r05c_collect_tsvs_cx" :
+    {
+      "mem" : "1GB",
+      "ncpus" : "1",
+      "time" : "00:01:59",
+      "arch" : "ivybridge",
+    },
+
+    "_r05b_collect_tsvs_dc" :
+    {
+      "mem" : "1GB",
+      "ncpus" : "1",
+      "time" : "00:01:59",
+      "arch" : "ivybridge",
+    },
+
+    "_r05a_collect_tsvs_fc" :
+    {
+      "mem" : "1GB",
+      "ncpus" : "1",
+      "time" : "00:01:59",
+      "arch" : "ivybridge",
+    },
+
+    "_r04_count_reads_fastqs" :
+    {
+      "mem" : "4GB",
+      "ncpus" : "1",
+      "time" : "02:59:59",
+      "arch" : "ivybridge",
+    },
+
+    "_r03_create_infile" :
+    {
+      "mem" : "1GB",
+      "ncpus" : "1",
+      "time" : "00:01:59",
+      "arch" : "ivybridge",
+    },
+
+    "_r02_create_fastq_list" :
+    {
+      "mem" : "1GB",
+      "ncpus" : "1",
+      "time" : "00:01:59",
+      "arch" : "ivybridge",
+    },
+
+    "_r01_prepare_hg38_dirs" :
+    {
+      "mem" : "1GB",
+      "ncpus" : "1",
+      "time" : "00:01:59",
+      "arch" : "ivybridge",
+    },
+
+    "_fc_k_reformat_circs" :
+    {
+      "mem" : "4GB",
+      "ncpus" : "1",
+      "time" : "00:05:59",
+      "arch" : "ivybridge",
+    },
+
+    "_fc_j_annotate_candidates_fc" :
+    {
+      "mem" : "4GB",
+      "ncpus" : "1",
+      "time" : "00:05:59",
+      "arch" : "ivybridge",
+    },
+
+    "_fc_i_filter_fc" :
+    {
+      "mem" : "8GB",
+      "ncpus" : "2",
+      "time" : "00:29:59",
+      "arch" : "ivybridge",
+    },
+
+    "_fc_h_align_anchors" :
+    {
+      "mem" : "32GB",
+      "ncpus" : "2",
+      "time" : "00:29:59",
+      "arch" : "ivybridge",
+    },
+
+    "_fc_g_get_anchors" :
+    {
+      "mem" : "8GB",
+      "ncpus" : "2",
+      "time" : "00:59:59",
+      "arch" : "ivybridge",
+    },
+
+    "_fc_f_prepare_remapping" :
+    {
+      "mem" : "8GB",
+      "ncpus" : "2",
+      "time" : "01:59:59",
+      "arch" : "ivybridge",
+    },
+
+    "_fc_e_sort_bam" :
+    {
+      "mem" : "8GB",
+      "ncpus" : "12",
+      "time" : "01:59:59",
+      "arch" : "ivybridge",
+    },
+
+    "_fc_d_create_bam" :
+    {
+      "mem" : "8GB",
+      "ncpus" : "12",
+      "time" : "01:59:59",
+      "arch" : "ivybridge",
+    },
+
+    "_fc_c_map_primary_bt2" :
+    {
+      "mem" : "48GB",
+      "ncpus" : "12",
+      "time" : "04:59:59",
+      "arch" : "ivybridge",
+    },
+
+    "_fc_b_prepare_files_fc" :
+    {
+      "mem" : "2GB",
+      "ncpus" : "1",
+      "time" : "00:01:59",
+      "arch" : "ivybridge",
+    },
+
+    "_fc_a_unzip_gz" :
+    {
+      "mem" : "8GB",
+      "ncpus" : "12",
+      "time" : "02:00:59",
+      "arch" : "ivybridge",
+    },
+
+    "_dcc_h_cleanup_annotation" :
+    {
+      "mem" : "8GB",
+      "ncpus" : "2",
+      "time" : "00:39:59",
+      "arch" : "ivybridge",
+    },
+
+    "_dcc_g_annotate_cleanfile" :
+    {
+      "mem" : "4GB",
+      "ncpus" : "1",
+      "time" : "00:05:59",
+      "arch" : "ivybridge",
+    },
+
+    "_dcc_f_cleanup_circfile" :
+    {
+      "mem" : "4GB",
+      "ncpus" : "1",
+      "time" : "00:02:59",
+      "arch" : "ivybridge",
+    },
+
+    "_dcc_e_execute_dcc" :
+    {
+      "mem" : "24GB",
+      "ncpus" : "12",
+      "time" : "00:59:59",
+      "arch" : "ivybridge",
+    },
+
+    "_dcc_d2_align_mate2" :
+    {
+      "mem" : "48GB",
+      "ncpus" : "12",
+      "time" : "01:59:59",
+      "arch" : "ivybridge",
+    },
+
+    "_dcc_d1_align_mate1" :
+    {
+      "mem" : "48GB",
+      "ncpus" : "12",
+      "time" : "01:59:59",
+      "arch" : "ivybridge",
+    },
+
+    "_dcc_c_align_primary_STAR_DCC" :
+    {
+      "mem" : "48GB",
+      "ncpus" : "12",
+      "time" : "02:59:59",
+      "arch" : "ivybridge",
+    },
+
+    "_dcc_b_prepare_files_dcc" :
+    {
+      "mem" : "1GB",
+      "ncpus" : "1",
+      "time" : "00:01:59",
+      "arch" : "ivybridge",
+    },
+
+    "_dcc_a_unzip_gz" :
+    {
+      "mem" : "2GB",
+      "ncpus" : "2",
+      "time" : "02:01:59",
+      "arch" : "ivybridge",
+    },
+
+    "_cx_f_cleanup_cx2anot" :
+    {
+      "mem" : "2GB",
+      "ncpus" : "2",
+      "time" : "00:39:59",
+      "arch" : "ivybridge",
+    },
+
+    "_cx_e_annotate_circs" :
+    {
+      "mem" : "8GB",
+      "ncpus" : "2",
+      "time" : "01:39:59",
+      "arch" : "ivybridge",
+    },
+
+    "_cx_d_run_cx2" :
+    {
+      "mem" : "8GB",
+      "ncpus" : "2",
+      "time" : "01:39:59",
+      "arch" : "ivybridge",
+    },
+
+    "_cx_c_align_primary_STAR" :
+    {
+      "mem" : "48GB",
+      "ncpus" : "12",
+      "time" : "01:39:59",
+      "arch" : "ivybridge",
+    },
+
+    "_cx_b_prepare_files" :
+    {
+      "mem" : "4GB",
+      "ncpus" : "1",
+      "time" : "00:01:59",
+      "arch" : "ivybridge",
+    },
+
+    "_cx_a_unzip_gz" :
+    {
+      "mem" : "4GB",
+      "ncpus" : "1",
+      "time" : "01:39:59",
+      "arch" : "ivybridge",
+    }
+}
