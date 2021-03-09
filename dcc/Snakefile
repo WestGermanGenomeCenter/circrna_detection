@@ -10,15 +10,18 @@ sample_names = list(samples_df['samples'])
 
 rule _dcc_h_cleanup_annotation:
   input:
-    config['prefix'] + "/dcc_2_out/run_{name}" + "/CircRNACount_annotated.tsv"
+    annoted=config['prefix'] + "/dcc_2_out/run_{name}" + "/CircRNACount_annotated.tsv",
+    clean_cords=config['prefix'] + "/dcc_2_out/run_{name}" + "/CircCoordinates_clean"
+
   output:
     config['prefix'] + "/dcc_2_out/run_{name}" + "/processed_run_{name}.tsv"
   params:
     parse_script=config['parse_file'],
-    samplename="{name}",
-    coords_file=config['prefix'] + "/dcc_2_out/run_{name}" + "/CircCoordinates"
+    samplename="{name}"
+  conda:
+    "../envs/dcc_env.yaml"
   shell:
-    "perl {params.parse_script} {input} {params.coords_file} {output} {params.samplename}"
+    "perl {params.parse_script} {input.annoted} {input.clean_cords} {output} {params.samplename}"
 
 
 
@@ -30,34 +33,41 @@ rule _dcc_g_annotate_cleanfile:
     config['prefix'] + "/dcc_2_out/run_{name}" + "/CircRNACount_annotated.tsv"
   params:
     bed_file = config['bed_ref']
+  conda:
+    "../envs/dcc_env.yaml"
   shell:
     "bedtools window -a {input} -b {params.bed_file} -w 1 >{output}"
 
 rule _dcc_f_cleanup_circfile:
   input:
-    config['prefix'] + "/dcc_2_out/run_{name}" + "/CircRNACount"
+    count=config['prefix'] + "/dcc_2_out/run_{name}" + "/CircRNACount",
+    cords=config['prefix'] + "/dcc_2_out/run_{name}" + "/CircCoordinates"
   output:
-    config['prefix'] + "/dcc_2_out/run_{name}" + "/CircRNACount_clean"
+    clean_count=config['prefix'] + "/dcc_2_out/run_{name}" + "/CircRNACount_clean",
+    clean_cords=config['prefix'] + "/dcc_2_out/run_{name}" + "/CircCoordinates_clean"
+  conda:
+    "../envs/dcc_env.yaml"
   shell:
-    "cat {input} | sed '1d' >{output}"
+    "cat {input.count} | sed '1d' >{output.clean_count} && cat {input.cords} | sed '1d' >{output.clean_cords}"
 
 rule _dcc_e_execute_dcc:
-    input:
-      both_lanes=config['prefix'] + "/dcc_2_out/run_{name}" + "/{name}_bothlanes.Chimeric.out.junction",
-      lane_1=config['prefix'] + "/dcc_2_out/run_{name}" + "/"+"{name}"+ config['lane_ident1'] +".Chimeric.out.junction",
-      lane_2=config['prefix'] + "/dcc_2_out/run_{name}" + "/"+"{name}"+ config['lane_ident2'] +".Chimeric.out.junction"
-    params:
-      refseq_file=config['refseq_file_dcc'],
-      fasta_ref=config['fasta_reference'],
-      dcc_com=config['dcc_command']
-    threads: 12
+  input:
+    both_lanes=config['prefix'] + "/dcc_2_out/run_{name}" + "/{name}_bothlanes.Chimeric.out.junction",
+    lane_1=config['prefix'] + "/dcc_2_out/run_{name}" + "/"+"{name}"+ config['lane_ident1'] +".Chimeric.out.junction",
+    lane_2=config['prefix'] + "/dcc_2_out/run_{name}" + "/"+"{name}"+ config['lane_ident2'] +".Chimeric.out.junction"
+  params:
+    refseq_file=config['refseq_file_dcc'],
+    fasta_ref=config['fasta_reference'],
+    dcc_com=config['dcc_command']
+  threads: 12
 
-    output:
-      config['prefix'] + "/dcc_2_out/run_{name}" + "/CircRNACount"
-    conda: # at some point i need a conda env here with python2
-      "/gpfs/project/daric102/circs_hilbert_scratchgs/snakemake_tests/envs/hg38_STAR.yaml"
-    shell:
-      "python {params.dcc_com} {input.both_lanes} -mt1 {input.lane_1} -mt2 {input.lane_2} -D -fg -an {params.refseq_file} -Pi -M -Nr 2 1 -A {params.fasta_ref} -N -T {threads}"
+  output:
+    config['prefix'] + "/dcc_2_out/run_{name}" + "/CircRNACount",
+    config['prefix'] + "/dcc_2_out/run_{name}" + "/CircCoordinates"
+  conda:
+    "../envs/dcc_env.yaml"
+  shell:
+    "python {params.dcc_com} {input.both_lanes} -mt1 {input.lane_1} -mt2 {input.lane_2} -D -fg -an {params.refseq_file} -Pi -M -Nr 2 1 -A {params.fasta_ref} -N -T {threads}"
 
 
 rule _dcc_d2_align_mate2:
@@ -115,33 +125,32 @@ rule _dcc_c_align_primary_STAR_DCC:
     config['prefix'] + "/dcc_2_out/run_{name}" + "/{name}_bothlanes.Chimeric.out.junction"
 
   conda:
-        "/gpfs/project/daric102/circs_hilbert_scratchgs/snakemake_tests/envs/hg38_STAR.yaml"
+    "/gpfs/project/daric102/circs_hilbert_scratchgs/snakemake_tests/envs/hg38_STAR.yaml"
   shell:
-        "STAR --runThreadN {threads} --genomeDir {input.genome} --outSAMtype BAM SortedByCoordinate --readFilesIn {input.lane_1} {input.lane_2} --outFileNamePrefix {params.outfile_name} --outReadsUnmapped Fastx --outSJfilterOverhangMin 15 15 15 15 --alignSJoverhangMin 15 --alignSJDBoverhangMin 15 --outFilterMultimapNmax 20 --outFilterScoreMin 1 --outFilterMatchNmin 1 --outFilterMismatchNmax 2 --chimSegmentMin 15 --chimScoreMin 15 --chimScoreSeparation 10 --chimJunctionOverhangMin 15 --limitBAMsortRAM 512000000000 &>STAR_init_map1_logfile.log"
+    "STAR --runThreadN {threads} --genomeDir {input.genome} --outSAMtype BAM SortedByCoordinate --readFilesIn {input.lane_1} {input.lane_2} --outFileNamePrefix {params.outfile_name} --outReadsUnmapped Fastx --outSJfilterOverhangMin 15 15 15 15 --alignSJoverhangMin 15 --alignSJDBoverhangMin 15 --outFilterMultimapNmax 20 --outFilterScoreMin 1 --outFilterMatchNmin 1 --outFilterMismatchNmax 2 --chimSegmentMin 15 --chimScoreMin 15 --chimScoreSeparation 10 --chimJunctionOverhangMin 15 --limitBAMsortRAM 512000000000 &>STAR_init_map1_logfile.log"
 
 rule _dcc_b_prepare_files_dcc:
+  input:
+    lane_1=config['prefix'] + "/{name}" + config["lane_ident1"] + ".fastq",
+    lane_2=config['prefix'] + "/{name}" + config["lane_ident2"] + ".fastq",
+  params:
+    processing_dir= config['prefix'] + "/dcc_2_out/run_{name}/",
+  output:
+    config['prefix'] + "/dcc_2_out/run_{name}/chk.tx"
 
-    input:
-        lane_1=config['prefix'] + "/{name}" + config["lane_ident1"] + ".fastq",
-        lane_2=config['prefix'] + "/{name}" + config["lane_ident2"] + ".fastq",
-    params:
-        processing_dir= config['prefix'] + "/dcc_2_out/run_{name}/",
-    output:
-        config['prefix'] + "/dcc_2_out/run_{name}/chk.tx"
-
-    shell:
-        "mkdir -p {params} && cd {params} && touch {output}"
+  shell:
+    "mkdir -p {params} && cd {params} && touch {output}"
 
 
 
 rule _dcc_a_unzip_gz:
-    input:
-        lane_1=config['prefix'] + "/{name}" + config["lane_ident1"] + ".fastq",
-        lane_2=config['prefix'] + "/{name}" + config["lane_ident2"] + ".fastq",
+  input:
+    lane_1=config['prefix'] + "/{name}" + config["lane_ident1"] + ".fastq",
+    lane_2=config['prefix'] + "/{name}" + config["lane_ident2"] + ".fastq",
         #out_dir=config['prefix'] + "/"
-    output:
-        lane_1=config['prefix'] + "/{name}" + config["lane_ident1"] + ".fastq.gz",
-        lane_2=config['prefix'] + "/{name}" + config["lane_ident2"] + ".fastq.gz",
-    shell:
-        "gunzip {input} "
+  output:
+    lane_1=config['prefix'] + "/{name}" + config["lane_ident1"] + ".fastq.gz",
+    lane_2=config['prefix'] + "/{name}" + config["lane_ident2"] + ".fastq.gz",
+  shell:
+    "gunzip {input} "
 # v0.1

@@ -1,0 +1,7 @@
+channels:
+    - conda-forge
+    - bioconda
+dependencies:
+    - perl
+    - bedtools
+    - star ==2.7.1a
