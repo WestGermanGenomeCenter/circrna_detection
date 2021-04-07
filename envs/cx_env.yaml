@@ -4,4 +4,5 @@ channels:
 dependencies:
     - perl
     - bedtools
-    - star ==2.7.1a
+    - star =2.7.1a
+    - python=3.6.5

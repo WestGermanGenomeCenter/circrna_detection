@@ -74,9 +74,11 @@ rule _cx_c_align_primary_STAR:
 rule _cx_b_prepare_files:
   input:
     lane_1=config['prefix'] + "/{name}" + config["lane_ident1"] + ".fastq",
-    lane_2=config['prefix'] + "/{name}" + config["lane_ident2"] + ".fastq",
+    lane_2=config['prefix'] + "/{name}" + config["lane_ident2"] + ".fastq"
   params:
-    processing_dir= config['prefix'] + "/cx2_out/run_{name}/",
+    processing_dir= config['prefix'] + "/cx2_out/run_{name}/"
+  conda:
+    "../envs/cx_env.yaml"
   output:
     config['prefix'] + "/cx2_out/run_{name}/chk.tx"
 

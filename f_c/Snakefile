@@ -141,10 +141,11 @@ rule _fc_c_map_primary_bt2:
 rule _fc_b_prepare_files_fc:
   input:
     lane_1=config['prefix'] + "/{name}" + config["lane_ident1"] + ".fastq",
-    lane_2=config['prefix'] + "/{name}" + config["lane_ident2"] + ".fastq",
+    lane_2=config['prefix'] + "/{name}" + config["lane_ident2"] + ".fastq"
   params:
     processing_dir= config['prefix'] + "/f_c2_out/run_{name}/"
-
+  conda:
+    "../envs/f_c_env.yaml"
   output:
     config['prefix'] + "/f_c2_out/run_{name}/chk.tx"
 
@@ -156,10 +157,10 @@ rule _fc_b_prepare_files_fc:
 rule _fc_a_unzip_gz:
   input:
     lane_1=config['prefix'] + "/{name}" + config["lane_ident1"] + ".fastq",
-    lane_2=config['prefix'] + "/{name}" + config["lane_ident2"] + ".fastq",
+    lane_2=config['prefix'] + "/{name}" + config["lane_ident2"] + ".fastq"
     #out_dir=config['prefix'] + "/"
   output:
     lane_1=config['prefix'] + "/{name}" + config["lane_ident1"] + ".fastq.gz",
-    lane_2=config['prefix'] + "/{name}" + config["lane_ident2"] + ".fastq.gz",
+    lane_2=config['prefix'] + "/{name}" + config["lane_ident2"] + ".fastq.gz"
   shell:
     "gunzip {input} "

@@ -40,15 +40,15 @@ rule _dcc_g_annotate_cleanfile:
 
 rule _dcc_f_cleanup_circfile:
   input:
-    count=config['prefix'] + "/dcc_2_out/run_{name}" + "/CircRNACount",
-    cords=config['prefix'] + "/dcc_2_out/run_{name}" + "/CircCoordinates"
+    fcount=config['prefix'] + "/dcc_2_out/run_{name}" + "/CircRNACount",
+    fcords=config['prefix'] + "/dcc_2_out/run_{name}" + "/CircCoordinates"
   output:
     clean_count=config['prefix'] + "/dcc_2_out/run_{name}" + "/CircRNACount_clean",
     clean_cords=config['prefix'] + "/dcc_2_out/run_{name}" + "/CircCoordinates_clean"
   conda:
     "../envs/dcc_env.yaml"
   shell:
-    "cat {input.count} | sed '1d' >{output.clean_count} && cat {input.cords} | sed '1d' >{output.clean_cords}"
+    "cat {input.fcount} | sed '1d' >{output.clean_count} && cat {input.fcords} | sed '1d' >{output.clean_cords}"
 
 rule _dcc_e_execute_dcc:
   input:

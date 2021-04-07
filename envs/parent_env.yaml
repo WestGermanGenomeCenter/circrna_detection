@@ -4,3 +4,4 @@ channels:
 dependencies:
     - perl
     - perl-parallel-forkmanager
+    - python=3.6.5
