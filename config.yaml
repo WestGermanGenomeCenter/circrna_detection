@@ -15,7 +15,7 @@ perl_script_dir:
 run_name:
   "test_srr_2samples"
 mm1_script:
-  "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/matrixmaker-V4.pl"
+  "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/auto_find_circ/matrixmaker-V4.pl"
 mm1_refseq_file:
   "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/auto_find_circ/refseq_to_gene_names_hg38.tsv"
 mm1_circ_bedfile:
@@ -32,3 +32,7 @@ ensembl_file:
   "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/auto_find_circ/mart_export_ensembl_gene_desc.txt"
 mapping_script:
   "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/auto_find_circ/read_mapping.pl"
+voting_script:
+  "/gpfs/project/daric102/circs_hilbert_scratchgs/snakemake_tests/circs_snake/scripts/auto_voting_usable_hpc_outputs.R"
+normalization_script:
+  "/gpfs/project/daric102/circs_hilbert_scratchgs/snakemake_tests/circs_snake/scripts/norm_a_voted_circs_df.R"

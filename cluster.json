@@ -10,6 +10,14 @@
       "arch" : "ivybridge",
     },
 
+    "_r08_vote_circs" :
+    {
+      "mem" : "8gb",
+      "ncpus" : "1",
+      "time" : "00:09:59",
+      "arch" : "ivybridge",
+    },
+
     "_r07c_run_matrix2_cx" :
     {
       "mem" : "16gb",
@@ -139,7 +147,7 @@
     {
       "mem" : "32gb",
       "ncpus" : "2",
-      "time" : "00:29:59",
+      "time" : "08:29:59",
       "arch" : "ivybridge",
     },
 
@@ -154,24 +162,24 @@
     "_fc_f_prepare_remapping" :
     {
       "mem" : "8gb",
-      "ncpus" : "2",
-      "time" : "01:59:59",
+      "ncpus" : "1",
+      "time" : "04:59:59",
       "arch" : "ivybridge",
     },
 
     "_fc_e_sort_bam" :
     {
       "mem" : "8gb",
-      "ncpus" : "12",
-      "time" : "01:59:59",
+      "ncpus" : "1",
+      "time" : "04:59:59",
       "arch" : "ivybridge",
     },
 
     "_fc_d_create_bam" :
     {
       "mem" : "8gb",
-      "ncpus" : "12",
-      "time" : "01:59:59",
+      "ncpus" : "1",
+      "time" : "04:59:59",
       "arch" : "ivybridge",
     },
 
@@ -291,7 +299,7 @@
     {
       "mem" : "8gb",
       "ncpus" : "2",
-      "time" : "01:39:59",
+      "time" : "02:39:59",
       "arch" : "ivybridge",
     },
 

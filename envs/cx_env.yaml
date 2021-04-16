@@ -3,6 +3,12 @@ channels:
     - bioconda
 dependencies:
     - perl
-    - bedtools
+    - bedtools =2.26.0
     - star =2.7.1a
     - python=3.6.5
+    - circexplorer2
+    - setuptools
+    - pysam
+    - perl-parallel-forkmanager
+    - perl-list-moreutils
+    - perl-exporter-tiny

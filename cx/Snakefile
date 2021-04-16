@@ -9,7 +9,7 @@ sample_names = list(samples_df['samples'])
 
 rule _cx_f_cleanup_cx2anot:
   input:
-    cx2_out=config['prefix'] + "/cx2_out/run_{name}" + "/cx2_out.tsv"
+    cx2_out=config['prefix'] + "/cx2_out/run_{name}" + "/CIRCexplorer_circ.txt"
   params:
     sample_name="{name}",
     pl_exec=config['pl_script_dir'] + "/circexplorer1_out_reader.pl"
@@ -22,17 +22,19 @@ rule _cx_f_cleanup_cx2anot:
 
 rule _cx_e_annotate_circs:
   input:
-    junc=config['prefix'] + "/cx2_out/run_{name}" + "/back_spliced_junction.bed"
+    fus_junc=config['prefix'] + "/cx2_out/run_{name}" + "/fusion_junction.txt"
   params:
     refseq_file=config['refseq_anot_file'],
     annotate_cmd=config['cx_annotate_command'],
-    fasta_files=config['fasta_ref']
+    fasta_files=config['fasta_ref'],
+    processing_dir= config['prefix'] + "/cx2_out/run_{name}/"
   conda:
     "../envs/cx_env.yaml"
   output:
-    cx2_out=config['prefix'] + "/cx2_out/run_{name}" + "/cx2_out.tsv"
+    cx2_out=config['prefix'] + "/cx2_out/run_{name}" + "/CIRCexplorer_circ.txt"
   shell:
-    "{params.annotate_cmd} -r {params.refseq_file} -g {params.fasta_files} -b {input} -o {output}"
+    "cd {params.processing_dir} && {params.annotate_cmd} -r {params.refseq_file} -g {params.fasta_files} -j {input.fus_junc}"
+# cx2 mode     "{params.annotate_cmd} -r {params.refseq_file} -g {params.fasta_files} -b {input} -o {output}"
 
 
 
@@ -42,13 +44,16 @@ rule _cx_d_run_cx2:
     chim_out=config['prefix'] + "/cx2_out/run_{name}" + "/Chimeric.out.junction"
   params:
     cx_parse_command=config['cx_parse_command'],
-    log=config['prefix'] + "/cx2_out/run_{name}" + "/CIRCexplorer2_parse.log"
+    log=config['prefix'] + "/cx2_out/run_{name}" + "/CIRCexplorer_parse.log",
+    processing_dir= config['prefix'] + "/cx2_out/run_{name}/"
   output:
-    junc=config['prefix'] + "/cx2_out/run_{name}" + "/back_spliced_junction.bed"
+    fus_junc=config['prefix'] + "/cx2_out/run_{name}" + "/fusion_junction.txt"
   conda:
     "../envs/cx_env.yaml"
   shell:
-    "{params.cx_parse_command} {input.chim_out} >{params.log}"
+        "cd {params.processing_dir} && {params.cx_parse_command} {input.chim_out} {output.fus_junc} >{params.log}"
+#cx2     "{params.cx_parse_command} {input.chim_out} >{params.log}"
+
 
 
 
@@ -69,7 +74,7 @@ rule _cx_c_align_primary_STAR:
   conda:
     "../envs/cx_env.yaml"
   shell:
-    "STAR --runThreadN {threads} --genomeDir {input.genome} --readFilesIn {input.lane_1} {input.lane_2} --chimSegmentMin 10 --limitBAMsortRAM 512000000000 "
+    "cd {params.processing_dir} && STAR --runThreadN {threads} --genomeDir {input.genome} --readFilesIn {input.lane_1} {input.lane_2} --chimSegmentMin 10 --limitBAMsortRAM 512000000000 "
 
 rule _cx_b_prepare_files:
   input:

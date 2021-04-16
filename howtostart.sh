@@ -7,8 +7,8 @@ module load Snakemake
 
 
 ~/miniconda3/bin/snakemake -n
-~/miniconda3/bin/snakemake -p  --cluster-config cluster.json --cluster "qsub -A {cluster.account} -q {cluster.queue} -l walltime={cluster.time} -l select={cluster.nodes}:ncpus={cluster.ncpus}:mem={cluster.mem}:arch={cluster.arch}" -j 100 --latency-wait 900 --use-conda --max-status-checks-per-second 1 --keep-going -n
-~/miniconda3/bin/snakemake -p  --cluster-config cluster.json --cluster "qsub -A {cluster.account} -q {cluster.queue} -l walltime={cluster.time} -l select={cluster.nodes}:ncpus={cluster.ncpus}:mem={cluster.mem}:arch={cluster.arch}" -j 100 --latency-wait 900 --use-conda --max-status-checks-per-second 1 --keep-going
+~/miniconda3/bin/snakemake -p  --cluster-config cluster.json --cluster "qsub -A {cluster.account} -q {cluster.queue} -l walltime={cluster.time} -l select={cluster.nodes}:ncpus={cluster.ncpus}:mem={cluster.mem}:arch={cluster.arch}" -j 100 --latency-wait 90000 --use-conda --max-status-checks-per-second 1 --keep-going -n
+~/miniconda3/bin/snakemake -p  --cluster-config cluster.json --cluster "qsub -A {cluster.account} -q {cluster.queue} -l walltime={cluster.time} -l select={cluster.nodes}:ncpus={cluster.ncpus}:mem={cluster.mem}:arch={cluster.arch}" -j 100 --latency-wait 90000 --use-conda --max-status-checks-per-second 1 --keep-going
 
 
 
@@ -20,7 +20,7 @@ module load Snakemake
 
 ##################################################
 ################ old stuff########################
-conda avitvate base
+conda activate base
 env| grep python
 python
 
@@ -37,4 +37,3 @@ export CONDA_PYTHON_EXE=/home/daric102/miniconda3/bin/python
 export PATH=/home/daric102/miniconda3/bin:/home/daric102/miniconda3/condabin:/usr/lib64/qt-3.3/bin:/usr/local/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/opt/pbs/bin:/home/daric102/bin
 export LD_LIBRARY_PATH=/home/daric102/miniconda3/lib/
 export MANPATH=/home/daric102/miniconda3/share/man/
-

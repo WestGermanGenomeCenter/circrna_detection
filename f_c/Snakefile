@@ -41,13 +41,14 @@ rule _fc_i_filter_fc:
     bed_ci=config['prefix'] + "/f_c2_out/run_{name}/{name}.sites.bed"
   params:
     sum_script=config['fc_scripts_dir'] + "/sum.py",
-    score_script=config['fc_scripts_dir'] + "/scorethresh.py"
+    score_script=config['fc_scripts_dir'] + "/scorethresh.py",
+    python_exec=config['python_exec']
   output:
     filtered_circs= config['prefix'] + "/f_c2_out/run_{name}/{name}.circ_candidates_auto.bed"
   conda:
     "../envs/f_c_env.yaml"
   shell:
-    "grep circ {input.bed_ci} | grep -v chrM | python2.7 {params.sum_script} -2,3 | python2.7 {params.score_script} -16 1 | python2.7 {params.score_script} -15 2 | python2.7 {params.score_script} -14 2 | python2.7 {params.score_script} 7 2 | python2.7 {params.score_script} 8,9 35 | python2.7 {params.score_script} -17 100000 >{output} "
+    "grep circ {input.bed_ci} | grep -v chrM | {params.python_exec} {params.sum_script} -2,3 | {params.python_exec} {params.score_script} -16 1 | {params.python_exec} {params.score_script} -15 2 | {params.python_exec} {params.score_script} -14 2 | {params.python_exec} {params.score_script} 7 2 | {params.python_exec} {params.score_script} 8,9 35 | {params.python_exec} {params.score_script} -17 100000 >{output} "
 
 rule _fc_h_align_anchors:
   input:
@@ -61,11 +62,12 @@ rule _fc_h_align_anchors:
     fastq_files_dir=config['chrom_fastqs'],
     genome=config['bowtie2_ref'],
     sample_name="{name}",
-    fc_main_script=config['fc_scripts_dir'] + "/find_circ.py"
+    fc_main_script=config['fc_scripts_dir'] + "/find_circ.py",
+    python_exec=config['python_exec']
   conda:
     "../envs/f_c_env.yaml"
   shell:
-    "bowtie2 --reorder --mm --score-min=C,-15,0 -q -x {params.genome} -U {input} 2> {output.log_bt} | python2.7 {params.fc_main_script} -G {params.fastq_files_dir} -p {params.sample_name} -s {output.log_fc} > {output.bed_ci} 2> {output.reads_ci}"
+    "bowtie2 --reorder --mm --score-min=C,-15,0 -q -x {params.genome} -U {input} 2> {output.log_bt} | {params.python_exec} {params.fc_main_script} -G {params.fastq_files_dir} -p {params.sample_name} -s {output.log_fc} > {output.bed_ci} 2> {output.reads_ci}"
 
 
 
@@ -75,11 +77,12 @@ rule _fc_g_get_anchors:
   output:
     anchors=config['prefix'] + "/f_c2_out/run_{name}/{name}.auto_anchors.qfa"
   params:
-    fc_script=config['fc_scripts_dir'] + "/unmapped2anchors.py"
+    fc_script=config['fc_scripts_dir'] + "/unmapped2anchors.py",
+    python_exec=config['python_exec']
   conda:
     "../envs/f_c_env.yaml"
   shell:
-    "python 2.7 {params.fc_script} {input} >{output}"
+    "{params.python_exec} {params.fc_script} {input} >{output}"
 
 
 rule _fc_f_prepare_remapping:
@@ -92,7 +95,7 @@ rule _fc_f_prepare_remapping:
   conda:
     "../envs/f_c_env.yaml"
   shell:
-    "samtools view -@ {threads} -hf 4 {input} | samtools view -@ {threads} -Sb - > {output}"
+    "samtools view -hf 4 {input} | samtools view -Sb - > {output}"
 
 
 rule _fc_e_sort_bam:
@@ -105,7 +108,7 @@ rule _fc_e_sort_bam:
   conda:
     "../envs/f_c_env.yaml"
   shell:
-    "samtools sort @ {threads} -O bam -o {output} {input}"
+    "samtools sort -O bam -o {output} {input}"
 
 rule _fc_d_create_bam:
   input:
@@ -117,7 +120,7 @@ rule _fc_d_create_bam:
   conda:
     "../envs/f_c_env.yaml"
   shell:
-    "samtools view -@ {threads} -hbuS -o {output} {input}"
+    "samtools view -hbuS -o {output} {input}"
 
 rule _fc_c_map_primary_bt2:
   input:
@@ -126,7 +129,9 @@ rule _fc_c_map_primary_bt2:
     lane_2=config['prefix'] + "/{name}" + config["lane_ident2"] + ".fastq"
   params:
     genome=config['bowtie2_ref'],
-    logfile=config['prefix'] + "/f_c2_out/run_{name}/bt2_first_align.log"
+    logfile=config['prefix'] + "/f_c2_out/run_{name}/bt2_first_align.log",
+    processing_dir= config['prefix'] + "/f_c2_out/run_{name}/"
+
   conda:
     "../envs/f_c_env.yaml"
   output:
@@ -134,7 +139,7 @@ rule _fc_c_map_primary_bt2:
   threads:
     config['threads']
   shell:
-    "bowtie2 -p {threads} --very-sensitive --mm --score-min=C,-15,0 -x {params.genome} -1 {input.lane_1} -2 {input.lane_2} 2>{params.logfile} >{output.sam}"
+    "cd {params.processing_dir} && bowtie2 -p {threads} --very-sensitive --mm --score-min=C,-15,0 -x {params.genome} -1 {input.lane_1} -2 {input.lane_2} 2>{params.logfile} >{output.sam}"
 
 
 

@@ -6,12 +6,51 @@ import pandas as pd
 samples_df = pd.read_table(samplesfile).set_index("samples", drop=False)
 sample_names = list(samples_df['samples'])
 
+
+
 rule all:
+  input:
+    cx2_V_N=config['prefix']+"/cx2_out/"+config['run_name']+"normed_voted_cx_output.csv",
+    dc2_V_N=config['prefix']+"/dcc_2_out/"+config['run_name']+"normed_voted_dc_output.csv",
+    fc2_V_N=config['prefix']+"/f_c2_out/"+config['run_name']+"normed_voted_fc_output.csv"
+
+
+
+rule _r09_norm_circs:
+  input:
+    cx2_voted=config['prefix']+"/cx2_out/"+config['run_name']+"ordered_circex_approved_by_all_three.csv",
+    dc2_voted=config['prefix']+"/dcc_2_out/"+config['run_name']+"ordered_dcc_approved_by_all_three.csv",
+    fc2_voted=config['prefix']+"/f_c2_out/"+config['run_name']+"ordered_find_circ_approved_by_all_three.csv"
+  params:
+    norm_script=config['normalization_script'],
+    reads_per_samplefile=config["prefix"]+"/reads_per_sample_"+config['run_name']+".tsv"
+  conda:
+    "envs/parent_env.yaml"
+  output:
+    cx2_V_N=config['prefix']+"/cx2_out/"+config['run_name']+"normed_voted_cx_output.csv",
+    dc2_V_N=config['prefix']+"/dcc_2_out/"+config['run_name']+"normed_voted_dc_output.csv",
+    fc2_V_N=config['prefix']+"/f_c2_out/"+config['run_name']+"normed_voted_fc_output.csv"
+  shell:
+    "Rscript {params.norm_script} {input.cx2_voted} {params.reads_per_samplefile} {output.cx2_V_N} && Rscript {params.norm_script} {input.fc2_voted} {params.reads_per_samplefile} {output.fc2_V_N} && Rscript {params.norm_script} {input.dc2_voted} {params.reads_per_samplefile} {output.dc2_V_N}"
+
+
+# ad rule: vote and normalization
+rule _r08_vote_circs:
   input:
     cx2_mat2=config['prefix']+"/cx2_out/"+config['run_name']+"/all_"+config['run_name']+"_cx2.mat2",
     dc2_mat2=config['prefix']+"/dcc_2_out/"+config['run_name']+"/all_"+config['run_name']+"_dcc2.mat2",
     fc2_mat2=config['prefix']+"/f_c2_out/"+config['run_name']+"/all_"+config['run_name']+"_fc2.mat2"
-
+  params:
+    r_script=config['voting_script'],
+    dir_out="." + config['run_name']
+  conda:
+    "envs/parent_env.yaml"
+  output:
+    cx2_voted=config['prefix']+"/cx2_out/"+config['run_name']+"ordered_circex_approved_by_all_three.csv",
+    dc2_voted=config['prefix']+"/dcc_2_out/"+config['run_name']+"ordered_dcc_approved_by_all_three.csv",
+    fc2_voted=config['prefix']+"/f_c2_out/"+config['run_name']+"ordered_find_circ_approved_by_all_three.csv"
+  shell:
+    "cd {params.dir_to_exec} && Rscript {params.r_script} {input.fc2_mat2} {input.cx2_mat2} {input.dc2_mat2} {params.dir_out}"
 
 
 
@@ -169,6 +208,7 @@ rule _r04_count_reads_fastqs:
     infile=config["prefix"]+"/samples.tsv",
     fastq_list_file=config["prefix"]+"/fastq_infiles_list.tx"
   params:
+    dir_to_go=config["prefix"],
     run_name=config['run_name'],
     perl_script2=config["perl_script_dir"]+ "/fastq_list_to_reads_per_sample.pl",
     lane_1ident=config["lane_ident1"]
@@ -177,7 +217,7 @@ rule _r04_count_reads_fastqs:
   output:
     reads_per_samplefile=config["prefix"]+"/reads_per_sample_"+config['run_name']+".tsv"
   shell:
-    "perl {params.perl_script2} --l1 {params.lane_1ident} --i {input.fastq_list_file} >{output}"
+    "cd {params.dir_to_go} && perl {params.perl_script2} --l1 {params.lane_1ident} --i {input.fastq_list_file} >{output}"
 
 
 # perl $perl_scripts_dir/fastq_list_to_infile_circs_ext.pl --i fastq_list_$proj_name.tx --g $proj_name --l1 $lane_diff --l2 $lane_to_id --m $paired_single_end_param >infile_$proj_name.tx

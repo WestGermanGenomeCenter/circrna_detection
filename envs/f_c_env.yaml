@@ -3,7 +3,10 @@ channels:
     - bioconda
 dependencies:
     - perl
-    - bedtools
-    - bowtie2
+    - bedtools =2.26.0
+    - bowtie2 =2.2.8
     - python =2.7
-    - samtools
+    - samtools =1.6
+    - perl-parallel-forkmanager
+    - perl-list-moreutils
+    - perl-exporter-tiny
