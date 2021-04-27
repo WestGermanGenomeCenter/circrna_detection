@@ -11,3 +11,4 @@ dependencies:
     - r-base
     - r-dplyr
     - r-venndiagram
+    - r-essentials

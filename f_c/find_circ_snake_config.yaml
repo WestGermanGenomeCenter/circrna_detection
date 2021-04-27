@@ -1,5 +1,5 @@
 bowtie2_ref:
-      "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/pipelines/hg19"
+ "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/pipelines/hg19"
 prefix:
  "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs"
 lane_ident1:
