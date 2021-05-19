@@ -9,13 +9,18 @@
       "ncpus" : "12",
       "arch" : "ivybridge",
     },
+    "_r09_norm_circs" :
+    {
+      "mem" : "8gb",
+      "ncpus" : "1",
+      "time" : "00:09:59",
+    },
 
     "_r08_vote_circs" :
     {
       "mem" : "8gb",
       "ncpus" : "1",
       "time" : "00:09:59",
-      "arch" : "ivybridge",
     },
 
     "_r07c_run_matrix2_cx" :

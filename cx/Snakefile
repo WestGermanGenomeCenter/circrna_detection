@@ -1,5 +1,5 @@
 # cx2 exec smk file
-configfile: "cx/cx_conf.yaml"
+configfile: "cx/cx_conf_hg19.yaml"
 samplesfile = "/gpfs/project/daric102/circs_hilbert_scratchgs/snakemake_tests/circs_snake/samples.tsv"
 
 import pandas as pd

@@ -1,4 +1,4 @@
-configfile: "config.yaml"
+configfile: "config_hg19.yaml"
 samplesfile = "samples.tsv"
 runfile = "run_conf.yaml"
 import pandas as pd
@@ -10,26 +10,26 @@ sample_names = list(samples_df['samples'])
 
 rule all:
   input:
-    cx2_V_N=config['prefix']+"/cx2_out/"+config["run_name"]+"normed_voted_cx_output.csv",
-    dc2_V_N=config['prefix']+"/dcc_2_out/"+config["run_name"]+"normed_voted_dc_output.csv",
-    fc2_V_N=config['prefix']+"/f_c2_out/"+config["run_name"]+"normed_voted_fc_output.csv"
+    cx2_V_N=config['prefix']+"/cx2_out/"+config["run_name"]+"/"+"normed_voted_cx_output.csv",
+    dc2_V_N=config['prefix']+"/dcc_2_out/"+config["run_name"]+"/"+"normed_voted_dc_output.csv",
+    fc2_V_N=config['prefix']+"/f_c2_out/"+config["run_name"]+"/"+"normed_voted_fc_output.csv"
 
 
 
 rule _r09_norm_circs:
   input:
-    cx2_voted=config['prefix']+"/ordered_circex_approved_by_all_three.csv",
-    dc2_voted=config['prefix']+"/ordered_dcc_approved_by_all_three.csv",
-    fc2_voted=config['prefix']+"/ordered_find_circ_approved_by_all_three.csv"
+    cx2_voted=config['prefix']+"/"+config["run_name"]+"ordered_circex_approved_by_all_three.csv",
+    dc2_voted=config['prefix']+"/"+config["run_name"]+"ordered_dcc_approved_by_all_three.csv",
+    fc2_voted=config['prefix']+"/"+config["run_name"]+"ordered_find_circ_approved_by_all_three.csv"
   params:
     norm_script=config['normalization_script'],
     reads_per_samplefile=config["prefix"]+"/reads_per_sample_"+config["run_name"]+".tsv"
   conda:
     "envs/parent_env.yaml"
   output:
-    cx2_V_N=config['prefix']+"/cx2_out/"+config["run_name"]+"normed_voted_cx_output.csv",
-    dc2_V_N=config['prefix']+"/dcc_2_out/"+config["run_name"]+"normed_voted_dc_output.csv",
-    fc2_V_N=config['prefix']+"/f_c2_out/"+config["run_name"]+"normed_voted_fc_output.csv"
+    cx2_V_N=config['prefix']+"/cx2_out/"+config["run_name"]+"/"+"normed_voted_cx_output.csv",
+    dc2_V_N=config['prefix']+"/dcc_2_out/"+config["run_name"]+"/"+"normed_voted_dc_output.csv",
+    fc2_V_N=config['prefix']+"/f_c2_out/"+config["run_name"]+"/"+"normed_voted_fc_output.csv"
   shell:
     "Rscript {params.norm_script} {input.cx2_voted} {params.reads_per_samplefile} {output.cx2_V_N} && Rscript {params.norm_script} {input.fc2_voted} {params.reads_per_samplefile} {output.fc2_V_N} && Rscript {params.norm_script} {input.dc2_voted} {params.reads_per_samplefile} {output.dc2_V_N}"
 
@@ -42,15 +42,16 @@ rule _r08_vote_circs:
     fc2_mat2=config['prefix']+"/f_c2_out/"+config["run_name"]+"/all_"+config["run_name"]+"_fc2.mat2"
   params:
     r_script=config['voting_script'],
-    dir_out=config['prefix']
+    dir_out=config['prefix'],
+    run_name=config["run_name"],
   conda:
     "envs/parent_env.yaml"
   output:
-    cx2_voted=config['prefix']+"/ordered_circex_approved_by_all_three.csv",
-    dc2_voted=config['prefix']+"/ordered_dcc_approved_by_all_three.csv",
-    fc2_voted=config['prefix']+"/ordered_find_circ_approved_by_all_three.csv"
+    cx2_voted=config['prefix']+"/"+config["run_name"]+"ordered_circex_approved_by_all_three.csv",
+    dc2_voted=config['prefix']+"/"+config["run_name"]+"ordered_dcc_approved_by_all_three.csv",
+    fc2_voted=config['prefix']+"/"+config["run_name"]+"ordered_find_circ_approved_by_all_three.csv"
   shell:
-    "cd {params.dir_out} && Rscript {params.r_script} {input.fc2_mat2} {input.cx2_mat2} {input.dc2_mat2} {params.dir_out}"
+    "cd {params.dir_out} && Rscript {params.r_script} {input.fc2_mat2} {input.cx2_mat2} {input.dc2_mat2} {params.run_name}"
 
 
 
@@ -228,13 +229,14 @@ rule _r03_create_infile:
     perl_script=config["perl_script_dir"]+ "/snake_infile_creator.pl",
     run_name=config["run_name"],
     lane_1ident=config["lane_ident1"],
-    lane_2ident=config["lane_ident2"]
+    lane_2ident=config["lane_ident2"],
+    dir_to_cd_to=config["prefix"]
   conda:
     "envs/parent_env.yaml"
   output:
     infile=config["prefix"]+"/"+config["run_name"]+"samples.tsv" # workaround for now, delete the old infile before a new one get created
   shell:
-    "perl {params.perl_script} --i {input} --l1 {params.lane_1ident} --l2 {params.lane_2ident} >{output}"
+    "cd {params.dir_to_cd_to} && perl {params.perl_script} --i {input} --l1 {params.lane_1ident} --l2 {params.lane_2ident} >{output}"
 
 rule _r02_create_fastq_list:
   input:

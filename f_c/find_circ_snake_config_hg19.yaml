@@ -1,0 +1,22 @@
+bowtie2_ref:
+  "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/pipelines/hg19"
+prefix:
+ "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs"
+lane_ident1:
+ "_1"
+lane_ident2:
+ "_2"
+threads:
+ 12
+fc_scripts_dir:
+  "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/pipelines"
+chrom_fastqs:
+  "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/pipelines/genome/chroms"
+annotation_bed:
+  "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/pipelines/Genes_RefSeq_hg19_09.20.2013.bed"
+strict:
+    "0"
+perl_scripts:
+  "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/auto_find_circ"
+python_exec:
+  "/software/python/2.7.5/ivybridge/bin/python"

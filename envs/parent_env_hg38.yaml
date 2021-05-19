@@ -1,0 +1,14 @@
+channels:
+    - conda-forge
+    - bioconda
+dependencies:
+    - perl
+    - perl-parallel-forkmanager
+    - perl-list-moreutils
+    - python=3.6.5
+    - perl-exporter-tiny
+    - r-core
+    - r-base
+    - r-dplyr
+    - r-venndiagram
+    - r-essentials

@@ -1,5 +1,5 @@
 
-configfile: "dcc/dcc_config.yaml"
+configfile: "dcc/dcc_config_hg19.yaml"
 samplesfile = "/gpfs/project/daric102/circs_hilbert_scratchgs/snakemake_tests/circs_snake/samples.tsv"
 #
 ####  trying to load the samplesfile into a list

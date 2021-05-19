@@ -1,0 +1,23 @@
+prefix:
+ "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs"
+genome_STAR_hg38:
+ "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/pipelines"
+genome_STAR_hg19:
+  "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/pipelines"
+lane_ident1:
+ "_1"
+lane_ident2:
+ "_2"
+threads:
+ 12
+refseq_file_dcc:
+ "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/pipelines/all_ref.gtf"
+fasta_reference:
+ "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/pipelines/hg19.fa"
+dcc_command:
+ "/software/python/2.7.5/ivybridge/bin/python /gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/pipelines/DCC/main.py"
+ #"/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/pipelines/DCC/main.py"
+bed_ref:
+ "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/pipelines/Genes_RefSeq_hg19_09.20.2013.bed"
+parse_file:
+ "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/automate_DCC/dcc_outreader.pl"
