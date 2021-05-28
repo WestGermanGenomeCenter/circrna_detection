@@ -4,7 +4,7 @@ channels:
 dependencies:
     - perl
     - bedtools =2.26.0
-    - bowtie2 =2.2.8
+    - bowtie2
     - python =2.7
     - samtools =1.6
     - perl-parallel-forkmanager

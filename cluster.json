@@ -144,7 +144,7 @@
     {
       "mem" : "8gb",
       "ncpus" : "2",
-      "time" : "00:29:59",
+      "time" : "00:54:59",
       "arch" : "ivybridge",
     },
 
@@ -152,7 +152,7 @@
     {
       "mem" : "32gb",
       "ncpus" : "2",
-      "time" : "08:29:59",
+      "time" : "08:45:59",
       "arch" : "ivybridge",
     },
 
@@ -160,7 +160,7 @@
     {
       "mem" : "8gb",
       "ncpus" : "2",
-      "time" : "00:59:59",
+      "time" : "01:29:59",
       "arch" : "ivybridge",
     },
 

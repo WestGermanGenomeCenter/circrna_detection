@@ -1,5 +1,5 @@
 
-configfile: "f_c/find_circ_snake_config.yaml"
+configfile: "f_c/find_circ_snake_config_hg19.yaml"
 samplesfile = "/gpfs/project/daric102/circs_hilbert_scratchgs/snakemake_tests/circs_snake/samples.tsv"
 
 import pandas as pd
@@ -63,11 +63,12 @@ rule _fc_h_align_anchors:
     genome=config['bowtie2_ref'],
     sample_name="{name}",
     fc_main_script=config['fc_scripts_dir'] + "/find_circ.py",
-    python_exec=config['python_exec']
+    python_exec=config['python_exec'],
+    btexwec=config['bowtie2_exec']
   conda:
     "../envs/f_c_env.yaml"
   shell:
-    "bowtie2 --reorder --mm --score-min=C,-15,0 -q -x {params.genome} -U {input} 2> {output.log_bt} | {params.python_exec} {params.fc_main_script} -G {params.fastq_files_dir} -p {params.sample_name} -s {output.log_fc} > {output.bed_ci} 2> {output.reads_ci}"
+    "{params.btexwec} --reorder --mm --score-min=C,-15,0 -q -x {params.genome} -U {input} 2> {output.log_bt} | {params.python_exec} {params.fc_main_script} -G {params.fastq_files_dir} -p {params.sample_name} -s {output.log_fc} > {output.bed_ci} 2> {output.reads_ci}"
 
 
 
@@ -130,7 +131,8 @@ rule _fc_c_map_primary_bt2:
   params:
     genome=config['bowtie2_ref'],
     logfile=config['prefix'] + "/f_c2_out/run_{name}/bt2_first_align.log",
-    processing_dir= config['prefix'] + "/f_c2_out/run_{name}/"
+    processing_dir= config['prefix'] + "/f_c2_out/run_{name}/",
+    btexwec=config['bowtie2_exec']
 
   conda:
     "../envs/f_c_env.yaml"
@@ -139,7 +141,7 @@ rule _fc_c_map_primary_bt2:
   threads:
     config['threads']
   shell:
-    "cd {params.processing_dir} && bowtie2 -p {threads} --very-sensitive --mm --score-min=C,-15,0 -x {params.genome} -1 {input.lane_1} -2 {input.lane_2} 2>{params.logfile} >{output.sam}"
+    "cd {params.processing_dir} && {params.btexwec} -p {threads} --very-sensitive --mm --score-min=C,-15,0 -x {params.genome} -1 {input.lane_1} -2 {input.lane_2} 2>{params.logfile} >{output.sam}"
 
 
 
