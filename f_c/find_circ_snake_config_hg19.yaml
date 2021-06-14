@@ -20,3 +20,5 @@ perl_scripts:
   "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/auto_find_circ"
 python_exec:
   "/software/python/2.7.5/ivybridge/bin/python"
+bowtie2_exec:
+  "/software/Bowtie2/2.1.0/ivybridge/bin/bowtie2"

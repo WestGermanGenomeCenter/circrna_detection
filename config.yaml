@@ -11,7 +11,7 @@ lane_ident2:
 threads:
  12
 perl_script_dir:
-  "/gpfs/project/daric102/circs_hilbert_scratchgs/snakemake_tests/repo_08_03_2021/scripts" # need to sorrect this- might need full parth here
+  "/gpfs/project/daric102/circs_hilbert_scratchgs/snakemake_tests/circs_snake/scripts" # need to sorrect this- might need full parth here
 run_name:
   "test_srr_2samples"
 mm1_script:
