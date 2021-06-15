@@ -1,6 +1,5 @@
 configfile: "config_hg19.yaml"
 samplesfile = "samples.tsv"
-runfile = "run_conf.yaml"
 import pandas as pd
 
 samples_df = pd.read_table(samplesfile).set_index("samples", drop=False)
