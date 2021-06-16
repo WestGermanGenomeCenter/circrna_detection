@@ -21,6 +21,7 @@ First all three pipelines (find_circ, DCC, CIRCexplorer1) are run on each sample
 ![Alt text](example_tsv_file.png?raw=true "head of example tsv out file")
 
 These files are summarized in step r06a,b,c that result in a .mat1 file for each pipeline.
+The columns in this fle are: circRNA coordinates, strand, samplename, detected quantity, quality, quality, refseq annotation
 Annotation is added, data is summarized and results in a .mat2 file (r07a,b,c).
 These pipeline-specific matrix2 files are then voted (circRNA coordinates are overlapped and filtered based on only 3/3 overlaps) and finally then normalized, resulting in three normalized and voted circRNA datafiles as the main output of this pipeline. An example output file is given with example_output_norm_voted_dcc_hg19.csv
 
@@ -28,7 +29,7 @@ These pipeline-specific matrix2 files are then voted (circRNA coordinates are ov
 ## before you can run this
 Before you will be able to run this workflow, you need to have:
 - snakemake installed
-- have the find_circ scripts from the officical website (http://circbase.org/cgi-bin/downloads.cgi, Custom scripts for finding circRNAs, unpack, edit find_circ_conf.yaml accordingly)
+- have the find_circ scripts from the officical website (http://circbase.org/cgi-bin/downloads.cgi, Custom scripts for finding circRNAs; unpack, edit find_circ_conf.yaml accordingly)
 - installed DCC and CIRCexplorer1 (install or download, edit the config.yaml files accordingly)
 - reference genome index built for STAR and Bowtie2, aswell as the reference genome in .fa and .gtf format (other annotation data is in the data/ dir, edit the config.yaml files accordingly)
 - all other software dependencies should be handled by snakemake, see the env.yaml files
@@ -49,7 +50,7 @@ the workflow expects:
 
 SRR3184300_1.fastq and SRR3184300_2.fastq +
 SRR3184385_1.fastq and SRR3184385_2.fastq
-
+ in the root directory of this workflow: path/to/circs_snake/. <- put the .fastq files here
  the lane identifier is changeable in the config.yaml:
  ```
  lane_ident1:
@@ -57,6 +58,18 @@ SRR3184385_1.fastq and SRR3184385_2.fastq
  lane_ident2:
   "_2"
 ```
+
+The workflow itself does create the needed .tsv file given two input fastq files in its root directory. you can also self-create this, see scripts/snake_infile_creator.pl. (parental Snakefile, rule r03 is where this would be created from a previously created .fastq file list, rule r02)
+
+
+
+## how to start a typical circs_snake run:
+- copy/past/move paired end, trimmed and QC'ed .fastq files into circ_snake/.
+- check if the lane idetifier is correct in all config.yaml files (change this if needed)
+- `snakemake` (for more options here see howtorun.sh)
+
+
+
 ## further reading
 
 For documentation on each single step, please refer to the original pipeline documentation: https://gitlab.com/daaaaande/circs/-/blob/master/README.md

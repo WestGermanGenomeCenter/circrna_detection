@@ -1,7 +1,5 @@
-
-configfile: "f_c/find_circ_snake_config_hg19.yaml"
-samplesfile = "/gpfs/project/daric102/circs_hilbert_scratchgs/snakemake_tests/circs_snake/samples.tsv"
-
+configfile: "full_config_hg19.yaml"
+samplesfile = "samples.tsv"
 import pandas as pd
 
 samples_df = pd.read_table(samplesfile).set_index("samples", drop=False)

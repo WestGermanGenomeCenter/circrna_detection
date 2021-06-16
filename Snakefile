@@ -1,4 +1,4 @@
-configfile: "config_hg19.yaml"
+configfile: "full_config_hg19.yaml"
 samplesfile = "samples.tsv"
 import pandas as pd
 

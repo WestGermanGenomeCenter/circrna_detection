@@ -1,0 +1,78 @@
+prefix:
+ "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs"
+genome_STAR_hg38:
+ "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/pipelines/hg38_full"
+genome_STAR_hg19:
+  "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/pipelines"
+lane_ident1:
+ "_1"
+lane_ident2:
+ "_2"
+threads:
+ 12
+perl_script_dir:
+  "/gpfs/project/daric102/circs_hilbert_scratchgs/snakemake_tests/circs_snake/scripts" # need to sorrect this- might need full parth here
+run_name:
+  "test_srr_2samples"
+mm1_script:
+  "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/auto_find_circ/matrixmaker-V4.pl"
+mm1_refseq_file:
+  "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/auto_find_circ/refseq_to_gene_names_hg38.tsv"
+mm1_circ_bedfile:
+  "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/auto_find_circ/hg_38_circbase_known_circs.bed"
+mm2_script:
+  "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/auto_find_circ/matrixtwo_V4.pl"
+micrornas_file:
+  "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/pipelines/miRNA_circRNA_ineractions.txt"
+circbank_coding_file:
+  "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/pipelines/circRNA_protein_coding_potential.txt"
+hallmarks_file:
+  "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/auto_find_circ/hallmark_genes.tsv"
+ensembl_file:
+  "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/auto_find_circ/mart_export_ensembl_gene_desc.txt"
+mapping_script:
+  "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/auto_find_circ/read_mapping.pl"
+voting_script:
+  "/gpfs/project/daric102/circs_hilbert_scratchgs/snakemake_tests/circs_snake/scripts/auto_voting_usable_hpc_outputs.R"
+normalization_script:
+  "/gpfs/project/daric102/circs_hilbert_scratchgs/snakemake_tests/circs_snake/scripts/norm_a_voted_circs_df.R"
+bowtie2_ref:
+ "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/pipelines/hg38_full/hg38"
+fc_scripts_dir:
+  "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/pipelines"
+chrom_fastqs:
+  "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/pipelines/upd/all_chroms"
+annotation_bed:
+  "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/pipelines/upd/hg38_ucsc_refseq.bed"
+strict:
+    "0"
+perl_scripts:
+  "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/auto_find_circ"
+python_exec:
+  "/software/python/2.7.5/ivybridge/bin/python"
+bowtie2_exec:
+  "/software/Bowtie2/2.1.0/ivybridge/bin/bowtie2"
+cx_parse_command:
+#  "python /home/daric102/.local/bin/CIRCexplorer2 parse -t STAR"
+  "/software/python/2.7.5/ivybridge/bin/python /gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/pipelines/star_parse.py"
+# for cx2: "python /home/daric102/.local/bin/CIRCexplorer2 parse -t STAR"
+cx_annotate_command:
+#  "python /home/daric102/.local/bin/CIRCexplorer2 annotate"
+  "/software/python/2.7.5/ivybridge/bin/python  /gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/pipelines/CIRCexplorer.py"
+refseq_anot_file:
+  "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/pipelines/hg38_full/hg_38_ref_fetched.txt"
+fasta_ref:
+  "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/pipelines/hg38_full/hg38_full.fa"
+pl_script_dir:
+  "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/circexplorer1_auto"
+refseq_file_dcc:
+ "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/pipelines/hg38_full/hg38_ucsc_ref_new_chroms.gtf"
+fasta_reference:
+ "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/pipelines/hg38_full/hg38_full.fa"
+dcc_command:
+ "/software/python/2.7.5/ivybridge/bin/python /gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/pipelines/DCC/main.py"
+ #"/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/pipelines/DCC/main.py"
+bed_ref:
+ "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/pipelines/upd/hg38_ucsc_refseq.bed"
+parse_file:
+ "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/automate_DCC/dcc_outreader.pl"

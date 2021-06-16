@@ -1,7 +1,5 @@
-
-configfile: "dcc/dcc_config_hg19.yaml"
-samplesfile = "/gpfs/project/daric102/circs_hilbert_scratchgs/snakemake_tests/circs_snake/samples.tsv"
-#
+configfile: "full_config_hg19.yaml"
+samplesfile = "samples.tsv"
 ####  trying to load the samplesfile into a list
 import pandas as pd
 
