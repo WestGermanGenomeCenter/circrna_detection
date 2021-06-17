@@ -1,11 +1,4 @@
 configfile: "full_config_hg19.yaml"
-samplesfile = "samples.tsv"
-import pandas as pd
-
-samples_df = pd.read_table(samplesfile).set_index("samples", drop=False)
-sample_names = list(samples_df['samples'])
-
-
 
 rule all:
   input:
