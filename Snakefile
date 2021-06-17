@@ -1,4 +1,11 @@
 configfile: "full_config_hg19.yaml"
+samplesfile = "samples.tsv"
+import pandas as pd
+
+samples_df = pd.read_table(samplesfile).set_index("samples", drop=False)
+sample_names = list(samples_df['samples'])
+
+
 
 rule all:
   input:
@@ -249,6 +256,9 @@ rule _r01_prepare_hg38_dirs:
   input:
     run_file="full_config_hg19.yaml"
   params:
+    fc2_dir=config["prefix"]+"/f_c2_out/",
+    dc2_dir=config["prefix"]+"/dcc2_out/",
+    cx2_dir=config["prefix"]+"/cx2_out/",
     fc_2_dir_to_create=config["prefix"]+"/f_c2_out/"+config["run_name"],
     cx_2_dir_to_create=config["prefix"]+"/cx2_out/"+config["run_name"],
     dc_2_dir_to_create=config["prefix"]+"/dcc_2_out/"+config["run_name"]
@@ -256,6 +266,9 @@ rule _r01_prepare_hg38_dirs:
     "envs/parent_env.yaml"
   output:
     # 3x chk.tx files, as before
+    fc2_chk=config["prefix"]+"/f_c2_out/"+"chk.tx",
+    dc2_chk=config["prefix"]+"/dcc2_out/"+"chk.tx",
+    cx2_chk=config["prefix"]+"/cx2_out/"+"chk.tx",
     fc_2_chk_to_create=config["prefix"]+"/f_c2_out/"+config["run_name"]+"/chk.tx",
     cx_2_chk_to_create=config["prefix"]+"/cx2_out/"+config["run_name"]+"/chk.tx",
     dc_2_chk_to_create=config["prefix"]+"/dcc_2_out/"+config["run_name"]+"/chk.tx"

@@ -1,0 +1,4 @@
+full_config_hg19.yaml
+full_config_hg38.yaml
+.snakemake
+.snakemake/*
