@@ -254,7 +254,7 @@ rule _r02_create_fastq_list:
 
 rule _r01_prepare_hg38_dirs:
   input:
-    run_file="run_conf.yaml" # this might not work
+    run_file="full_config_hg19.yaml"
   params:
     fc_2_dir_to_create=config["prefix"]+"/f_c2_out/"+config["run_name"],
     cx_2_dir_to_create=config["prefix"]+"/cx2_out/"+config["run_name"],
