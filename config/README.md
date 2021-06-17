@@ -1,5 +1,7 @@
 # users manual to circs_snake
-This is meant to help you, the user, to understand what circs_snake tries to do such that you can use /change this to your liking / environment.
+circs_snake is a multi-pipeline circRNA detection workflow from RNASeq data.
+
+This readme is meant to help you, the user, to understand what circs_snake tries to do such that you can use /change this to your liking / environment.
 For an first rough overview, lets look at a DAG of this pipeline with two input samples.
 
 ![Alt text](dag_before_vote.svg?raw=true "circs_snake DAG")
