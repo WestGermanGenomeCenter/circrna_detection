@@ -1,4 +1,4 @@
-configfile: "full_config_hg19.yaml"
+configfile: "config.yaml"
 samplesfile = "samples.tsv"
 ####  trying to load the samplesfile into a list
 import pandas as pd
