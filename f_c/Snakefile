@@ -10,12 +10,12 @@ sample_names = list(samples_df['samples'])
 
 rule _fc_k_reformat_circs:
   input:
-    annotated_circs=config['prefix'] + "/f_c2_out/run_{name}/{name}.circ_candidates_auto.bed.annotated"
+    annotated_circs=config['prefix'] + "/fc_out/run_{name}/{name}.circ_candidates_auto.bed.annotated"
   params:
     strict=config['strict'],
     perl_script_dir=config['perl_scripts']
   output:
-    tsv_out=config['prefix'] + "/f_c2_out/run_{name}" + "/processed_run_{name}.tsv"
+    tsv_out=config['prefix'] + "/fc_out/run_{name}" + "/processed_run_{name}.tsv"
   conda:
     "../envs/f_c_env.yaml"
   shell:
@@ -24,9 +24,9 @@ rule _fc_k_reformat_circs:
 
 rule _fc_j_annotate_candidates_fc:
   input:
-    filtered_circs=config['prefix'] + "/f_c2_out/run_{name}/{name}.circ_candidates_auto.bed"
+    filtered_circs=config['prefix'] + "/fc_out/run_{name}/{name}.circ_candidates_auto.bed"
   output:
-    annotated_circs=config['prefix'] + "/f_c2_out/run_{name}/{name}.circ_candidates_auto.bed.annotated"
+    annotated_circs=config['prefix'] + "/fc_out/run_{name}/{name}.circ_candidates_auto.bed.annotated"
   params:
     bed_file=config['annotation_bed']
   conda:
@@ -36,13 +36,13 @@ rule _fc_j_annotate_candidates_fc:
 
 rule _fc_i_filter_fc:
   input:
-    bed_ci=config['prefix'] + "/f_c2_out/run_{name}/{name}.sites.bed"
+    bed_ci=config['prefix'] + "/fc_out/run_{name}/{name}.sites.bed"
   params:
     sum_script=config['fc_scripts_dir'] + "/sum.py",
     score_script=config['fc_scripts_dir'] + "/scorethresh.py",
     python_exec=config['python_exec']
   output:
-    filtered_circs= config['prefix'] + "/f_c2_out/run_{name}/{name}.circ_candidates_auto.bed"
+    filtered_circs= config['prefix'] + "/fc_out/run_{name}/{name}.circ_candidates_auto.bed"
   conda:
     "../envs/f_c_env.yaml"
   shell:
@@ -50,12 +50,12 @@ rule _fc_i_filter_fc:
 
 rule _fc_h_align_anchors:
   input:
-    anchors=config['prefix'] + "/f_c2_out/run_{name}/{name}.auto_anchors.qfa"
+    anchors=config['prefix'] + "/fc_out/run_{name}/{name}.auto_anchors.qfa"
   output:
-    bed_ci=config['prefix'] + "/f_c2_out/run_{name}/{name}.sites.bed",
-    reads_ci=config['prefix'] + "/f_c2_out/run_{name}/{name}.sites.reads",
-    log_bt=config['prefix'] + "/f_c2_out/run_{name}/{name}.secondpass.log",
-    log_fc=config['prefix'] + "/f_c2_out/run_{name}/{name}.f_c_run_sites.log"
+    bed_ci=config['prefix'] + "/fc_out/run_{name}/{name}.sites.bed",
+    reads_ci=config['prefix'] + "/fc_out/run_{name}/{name}.sites.reads",
+    log_bt=config['prefix'] + "/fc_out/run_{name}/{name}.secondpass.log",
+    log_fc=config['prefix'] + "/fc_out/run_{name}/{name}.f_c_run_sites.log"
   params:
     fastq_files_dir=config['chrom_fastqs'],
     genome=config['bowtie2_ref'],
@@ -72,9 +72,9 @@ rule _fc_h_align_anchors:
 
 rule _fc_g_get_anchors:
   input:
-    unmapped=config['prefix'] + "/f_c2_out/run_{name}/{name}.unmapped.auto.bam"
+    unmapped=config['prefix'] + "/fc_out/run_{name}/{name}.unmapped.auto.bam"
   output:
-    anchors=config['prefix'] + "/f_c2_out/run_{name}/{name}.auto_anchors.qfa"
+    anchors=config['prefix'] + "/fc_out/run_{name}/{name}.auto_anchors.qfa"
   params:
     fc_script=config['fc_scripts_dir'] + "/unmapped2anchors.py",
     python_exec=config['python_exec']
@@ -86,9 +86,9 @@ rule _fc_g_get_anchors:
 
 rule _fc_f_prepare_remapping:
   input:
-    sorted_bam=config['prefix'] + "/f_c2_out/run_{name}/{name}.auto.bam"
+    sorted_bam=config['prefix'] + "/fc_out/run_{name}/{name}.auto.bam"
   output:
-    unmapped=config['prefix'] + "/f_c2_out/run_{name}/{name}.unmapped.auto.bam"
+    unmapped=config['prefix'] + "/fc_out/run_{name}/{name}.unmapped.auto.bam"
   threads:
     config['threads']
   conda:
@@ -99,9 +99,9 @@ rule _fc_f_prepare_remapping:
 
 rule _fc_e_sort_bam:
   input:
-    bam=config['prefix'] + "/f_c2_out/run_{name}/temp.bam"
+    bam=config['prefix'] + "/fc_out/run_{name}/temp.bam"
   output:
-    sorted_bam=config['prefix'] + "/f_c2_out/run_{name}/{name}.auto.bam"
+    sorted_bam=config['prefix'] + "/fc_out/run_{name}/{name}.auto.bam"
   threads:
     config['threads']
   conda:
@@ -111,9 +111,9 @@ rule _fc_e_sort_bam:
 
 rule _fc_d_create_bam:
   input:
-    sam=config['prefix'] + "/f_c2_out/run_{name}/temp.sam"
+    sam=config['prefix'] + "/fc_out/run_{name}/temp.sam"
   output:
-    bam=config['prefix'] + "/f_c2_out/run_{name}/temp.bam"
+    bam=config['prefix'] + "/fc_out/run_{name}/temp.bam"
   threads:
     config['threads']
   conda:
@@ -123,19 +123,19 @@ rule _fc_d_create_bam:
 
 rule _fc_c_map_primary_bt2:
   input:
-    dir_check=config['prefix'] + "/f_c2_out/run_{name}/chk.tx",
+    dir_check=config['prefix'] + "/fc_out/run_{name}/chk.tx",
     lane_1=config['prefix'] + "/{name}" + config["lane_ident1"] + ".fastq",
     lane_2=config['prefix'] + "/{name}" + config["lane_ident2"] + ".fastq"
   params:
     genome=config['bowtie2_ref'],
-    logfile=config['prefix'] + "/f_c2_out/run_{name}/bt2_first_align.log",
-    processing_dir= config['prefix'] + "/f_c2_out/run_{name}/",
+    logfile=config['prefix'] + "/fc_out/run_{name}/bt2_first_align.log",
+    processing_dir= config['prefix'] + "/fc_out/run_{name}/",
     btexwec=config['bowtie2_exec']
 
   conda:
     "../envs/f_c_env.yaml"
   output:
-    sam=config['prefix'] + "/f_c2_out/run_{name}/temp.sam"
+    sam=config['prefix'] + "/fc_out/run_{name}/temp.sam"
   threads:
     config['threads']
   shell:
@@ -148,11 +148,11 @@ rule _fc_b_prepare_files_fc:
     lane_1=config['prefix'] + "/{name}" + config["lane_ident1"] + ".fastq",
     lane_2=config['prefix'] + "/{name}" + config["lane_ident2"] + ".fastq"
   params:
-    processing_dir= config['prefix'] + "/f_c2_out/run_{name}/"
+    processing_dir= config['prefix'] + "/fc_out/run_{name}/"
   conda:
     "../envs/f_c_env.yaml"
   output:
-    config['prefix'] + "/f_c2_out/run_{name}/chk.tx"
+    config['prefix'] + "/fc_out/run_{name}/chk.tx"
 
   shell:
     "mkdir -p {params.processing_dir} && cd {params.processing_dir} && touch {output}"

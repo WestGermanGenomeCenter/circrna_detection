@@ -1,9 +1,7 @@
 prefix:
  "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs"
-genome_STAR_hg38:
+genome_STAR:
  "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/pipelines/hg38_full"
-genome_STAR_hg19:
-  "/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/pipelines"
 lane_ident1:
  "_1"
 lane_ident2:

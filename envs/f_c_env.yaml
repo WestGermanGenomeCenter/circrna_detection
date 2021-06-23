@@ -5,6 +5,7 @@ dependencies:
     - perl
     - bedtools =2.26.0
     - bowtie2
+    - pysam
     - python =2.7
     - samtools =1.6
     - perl-parallel-forkmanager

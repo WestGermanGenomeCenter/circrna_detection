@@ -7,29 +7,29 @@ sample_names = list(samples_df['samples'])
 
 rule _cx_f_cleanup_cx2anot:
   input:
-    cx2_out=config['prefix'] + "/cx2_out/run_{name}" + "/CIRCexplorer_circ.txt"
+    cx_out1=config['prefix'] + "/cx_out/run_{name}" + "/CIRCexplorer_circ.txt"
   params:
     sample_name="{name}",
     pl_exec=config['pl_script_dir'] + "/circexplorer1_out_reader.pl"
   conda:
     "../envs/cx_env.yaml"
   output:
-    processed_fin=config['prefix'] + "/cx2_out/run_{name}" + "/processed_run_{name}.tsv"
+    processed_fin=config['prefix'] + "/cx_out/run_{name}" + "/processed_run_{name}.tsv"
   shell:
     "perl {params.pl_exec} {input} {output} {params.sample_name}"
 
 rule _cx_e_annotate_circs:
   input:
-    fus_junc=config['prefix'] + "/cx2_out/run_{name}" + "/fusion_junction.txt"
+    fus_junc=config['prefix'] + "/cx_out/run_{name}" + "/fusion_junction.txt"
   params:
     refseq_file=config['refseq_anot_file'],
     annotate_cmd=config['cx_annotate_command'],
     fasta_files=config['fasta_ref'],
-    processing_dir= config['prefix'] + "/cx2_out/run_{name}/"
+    processing_dir= config['prefix'] + "/cx_out/run_{name}/"
   conda:
     "../envs/cx_env.yaml"
   output:
-    cx2_out=config['prefix'] + "/cx2_out/run_{name}" + "/CIRCexplorer_circ.txt"
+    cx_out1=config['prefix'] + "/cx_out/run_{name}" + "/CIRCexplorer_circ.txt"
   shell:
     "cd {params.processing_dir} && {params.annotate_cmd} -r {params.refseq_file} -g {params.fasta_files} -j {input.fus_junc}"
 # cx2 mode     "{params.annotate_cmd} -r {params.refseq_file} -g {params.fasta_files} -b {input} -o {output}"
@@ -39,13 +39,13 @@ rule _cx_e_annotate_circs:
 # following the cx2 flow
 rule _cx_d_run_cx2:
   input:
-    chim_out=config['prefix'] + "/cx2_out/run_{name}" + "/Chimeric.out.junction"
+    chim_out=config['prefix'] + "/cx_out/run_{name}" + "/Chimeric.out.junction"
   params:
     cx_parse_command=config['cx_parse_command'],
-    log=config['prefix'] + "/cx2_out/run_{name}" + "/CIRCexplorer_parse.log",
-    processing_dir= config['prefix'] + "/cx2_out/run_{name}/"
+    log=config['prefix'] + "/cx_out/run_{name}" + "/CIRCexplorer_parse.log",
+    processing_dir= config['prefix'] + "/cx_out/run_{name}/"
   output:
-    fus_junc=config['prefix'] + "/cx2_out/run_{name}" + "/fusion_junction.txt"
+    fus_junc=config['prefix'] + "/cx_out/run_{name}" + "/fusion_junction.txt"
   conda:
     "../envs/cx_env.yaml"
   shell:
@@ -59,15 +59,15 @@ rule _cx_c_align_primary_STAR:
   input:
     lane_1= config['prefix'] + "/" + "{name}" + config["lane_ident1"] + ".fastq",
     lane_2= config['prefix'] + "/" + "{name}" + config["lane_ident2"] + ".fastq",
-    genome= config["genome_STAR_hg38"],
-    dir_check= config['prefix'] + "/cx2_out/run_{name}/chk.tx"
+    genome= config["genome_STAR"],
+    dir_check= config['prefix'] + "/cx_out/run_{name}/chk.tx"
   params:
-    processing_dir= config['prefix'] + "/cx2_out/run_{name}/",
+    processing_dir= config['prefix'] + "/cx_out/run_{name}/",
     outfile_name="{name}"
   threads: 12
 
   output:
-    config['prefix'] + "/cx2_out/run_{name}" + "/Chimeric.out.junction"
+    config['prefix'] + "/cx_out/run_{name}" + "/Chimeric.out.junction"
 
   conda:
     "../envs/cx_env.yaml"
@@ -79,11 +79,11 @@ rule _cx_b_prepare_files:
     lane_1=config['prefix'] + "/{name}" + config["lane_ident1"] + ".fastq",
     lane_2=config['prefix'] + "/{name}" + config["lane_ident2"] + ".fastq"
   params:
-    processing_dir= config['prefix'] + "/cx2_out/run_{name}/"
+    processing_dir= config['prefix'] + "/cx_out/run_{name}/"
   conda:
     "../envs/cx_env.yaml"
   output:
-    config['prefix'] + "/cx2_out/run_{name}/chk.tx"
+    config['prefix'] + "/cx_out/run_{name}/chk.tx"
 
   shell:
     "mkdir -p {params} && cd {params} && touch {output}"
