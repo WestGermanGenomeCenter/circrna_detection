@@ -12,7 +12,7 @@ use Getopt::Long qw(GetOptions);
 ####################################################
 my $infile="in.tsv";
 my$out_file="out.mat1";
-my$logfile="/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/logfile_auto.log";
+my$logfile="logfile_auto.log";
 my$circ_bed_file="/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/auto_find_circ/circbase_known_circs.bed";
 my$gene_mapping_file="/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/auto_find_circ/genes_to_refseqID_nc_and_nr.tsv";
 my$threads=12;

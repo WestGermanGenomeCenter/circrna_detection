@@ -14,7 +14,7 @@ my$circbank_mirRNA_file="/gpfs/project/daric102/circs_hilbert_scratchgs/repo/cir
 my$circbank_coding_file="/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/pipelines/circRNA_protein_coding_potential.txt";
 my$hallmark_mapping_file="/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/auto_find_circ/hallmark_genes.tsv"; # unusual mapping file, not one gene per line
 my$ensembl_file="/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/auto_find_circ/mart_export_ensembl_gene_desc.txt";
-my$logfile="/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/logfile_auto.log";
+my$logfile="logfile_auto.log";
 my$mapping_script="/gpfs/project/daric102/circs_hilbert_scratchgs/repo/circs/auto_find_circ/read_mapping.pl";
 # read custom files if provided
 my$exclude_circbank=0;# set to 1 if you want to exclude circBank data (spliced length,mm_9 circ and prob_coding ),0 (default) includes this data then into the output
