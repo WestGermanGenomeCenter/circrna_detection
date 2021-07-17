@@ -1,6 +1,6 @@
 # execute snake_circs- cold start
 cir
-qsub -q default -I exec/interacive_job_snake.sh
+qsub -A circs -I -l select=1:ncpus=10:mem=20G -l walltime=11:59:00
 screen -dRR snake
 module load Miniconda/3_snakemake
 module load Snakemake/5.10.0

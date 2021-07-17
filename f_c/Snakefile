@@ -13,13 +13,14 @@ rule _fc_k_reformat_circs:
     annotated_circs=config['prefix'] + "/fc_out/run_{name}/{name}.circ_candidates_auto.bed.annotated"
   params:
     strict=config['strict'],
-    perl_script_dir=config['perl_scripts']
+    perl_script_dir=config['perl_scripts'],
+    processing_dir=config['prefix'] + "/fc_out/run_{name}/"
   output:
     tsv_out=config['prefix'] + "/fc_out/run_{name}" + "/processed_run_{name}.tsv"
   conda:
     "../envs/f_c_env.yaml"
   shell:
-    "perl {params.perl_script_dir}/f_c_outreader.pl --i {input} --o {output} -strict {params.strict}"
+    "cd {params.processing_dir} && rm *.bam *.sam *.qfa *.reads && perl {params.perl_script_dir}/f_c_outreader.pl --i {input} --o {output} -strict {params.strict}"
 
 
 rule _fc_j_annotate_candidates_fc:
@@ -129,7 +130,7 @@ rule _fc_c_map_primary_bt2:
   params:
     genome=config['bowtie2_ref'],
     logfile=config['prefix'] + "/fc_out/run_{name}/bt2_first_align.log",
-    processing_dir= config['prefix'] + "/fc_out/run_{name}/",
+    processing_dir=config['prefix'] + "/fc_out/run_{name}/",
     btexwec=config['bowtie2_exec']
 
   conda:

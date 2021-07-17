@@ -2,14 +2,13 @@
 use strict;
 use Parallel::ForkManager;
 use Getopt::Long qw(GetOptions);
-# get the candidatelist_auto_all_sites.bed.csv file created with steptwo.pl
-############################### example run
+# example run
 # perl ../../../auto_circs/auto_find_circ/matrixmaker-V4.pl --infile allsites_bedgroup_WNT.csv -outfile test6_mm4_matrixone_test1.tsv --logfile log.log --circ_bed_file ../../../auto_circs/auto_find_circ/circbase_known_circs.bed --gene_mapping_file ../../../auto_circs/auto_find_circ/genes_to_refseqID_nc_and_nr.tsv
-##########################################
+#
 # made by Daniel R.
 
 # input parameters: if not given, use default files:
-####################################################
+#
 my $infile="in.tsv";
 my$out_file="out.mat1";
 my$logfile="logfile_auto.log";
@@ -28,7 +27,7 @@ print ER "started MM_v4 with parameters:\ninfile:$infile\noutfile:$out_file\nche
 print ER "circs_coords_mapping.bed:$circ_bed_file\ngene_mapping_file:$gene_mapping_file\nthreandN: $threads\nstarting...\n";
 my$linfile= $infile;
 chomp $linfile;
-########################################################################### gene mapping file reading into hash %mapping
+#gene mapping file reading into hash %mapping
 my%mapping=();
 open(MA,$gene_mapping_file)|| die "$!";
 my@allemappings= <MA>;
@@ -38,7 +37,7 @@ foreach my $mapline (@allemappings){
 	chomp $mapline;
 	#my $pid = $pm->start and next;
 	if(!($mapline=~/^$/)){
-	#	print "$mapline\n";
+		#	print "$mapline\n";
 		my@slit=split(/\s+/,$mapline);
 		my$genene=$slit[0];
 		$genene =~ s/\s+//g; # remove emptieness
@@ -48,10 +47,10 @@ foreach my $mapline (@allemappings){
 			if($nnum=~/[NX]/){# we only want refseqids here, NR* or NM/NR/XR/XM
 				$nnum =~ s/\s+//g;
 				$mapping{"$nnum"}="$genene";
-				#	print "mapping now $nnum to gene $genene\n";# refseqid to gene name
+			#	print "mapping now $nnum to gene $genene\n";# refseqid to gene name
 			}
 		}
-		$nnum="";
+	$nnum="";
 	}
 }
 close MA;
@@ -60,7 +59,7 @@ close MA;
 print ER "reading input file $linfile ...\n";
 # output file second argument adding coordinates
 open(IN,$linfile)|| die "$!";
-############################################ get samlenames into array, get coordinates and basic info into arrays
+##get samlenames into array, get coordinates and basic info into arrays
 my@allelines= <IN>; #input file
 my%sample_hash;
 my%basic_info_hash;
@@ -103,7 +102,7 @@ my$sampleout;
 my%known_circs=();
 open(CI,$circ_bed_file)|| die "$!";
 my@alleci= <CI>;
-################################################ gene mapping file reading into hashknown_circs
+### gene mapping file reading into hashknown_circs
 print ER "reading known circs...\n";
 foreach my $circline (@alleci){			# fill a hash that is used later
 	chomp $circline;
@@ -119,7 +118,7 @@ foreach my $circline (@alleci){			# fill a hash that is used later
 	}
 }
 close CI;
-################### get all information from one sample into a hash , key is samplename and value is all information in one var
+#get all information from one sample into a hash , key is samplename and value is all information in one var
 foreach my $samplenames (@allenames){
 	$sampleout= `grep -w $samplenames $linfile`;	#
 	$allinfoonesamplehash{"$samplenames"} = "$sampleout";
@@ -130,27 +129,27 @@ my$outfile=$out_file;
 chomp $outfile;
 print ER "starting $threads threads, writing $outfile\n";
 open(OU,">",$outfile)|| die "$!";
-############################################# get stable header, build resizeable header for samples
+# get stable header, build resizeable header for samples
 print OU "coordinates\tstrand\tRefseqID\tGene\tknown_circ\t";
 foreach my $sampls  (@allenames) {
 	print OU "$sampls\t"; # $sampls not in same order as below, need to change it
 }
 print OU "\n";
-############################################# look for each circ in each sample and build a matrix
-					# number of cores
+
+# number of cores
 my $pf = Parallel::ForkManager->new($threads);
 my$ni=0;
 our$count=0;
 findc(\@allecooords);
 sub findc{
 	my@c=@{$_[0]};
-  DATA_OUT:
-  foreach my $circs (@allecooords){
-  	$count ++;
+  	DATA_OUT:
+  	foreach my $circs (@allecooords){
+  		$count ++;
 		$pf->start and next DATA_OUT;
-  	find_circ($circs);
-  	sub find_circ {
-    	my$circcand= shift(@_);
+  		find_circ($circs);
+  		sub find_circ {
+	    		my$circcand= shift(@_);
 			$circcand=~s/\t[+-]{1}//;
 			my$str=$&;# strand of circ candidate
 			my$basicinfo=$allebasicinfo[$count -1]; # start at zero, while the counter is already at 1 in first iteration
@@ -187,52 +186,50 @@ sub findc{
 					$circn="unknown";
 				}
 				foreach my $single_sample (@allenames) {# looking in each sample for each circ
-	  				my$allonesample= $allinfoonesamplehash{$single_sample};
-        		if($allonesample=~/$circcand\t*.*\n/gi){### is the circ is found in sample### make this more explicit: rule out coords+1 at the end by \t??
-							my$line_of_i=$&;
-          		my$lineonesample=$line_of_i; #declare the interesting line
-							$lineonesample=~s/\n//g;
-							my@hit_line_parts=split(/\s+/,$lineonesample);
-							# this line should be like chr1:117402185-117420649	+	trimmed.Lena_12__2	38	1	1 NR_00475
-							my$hit_qunat=$hit_line_parts[3];
-							my$strand=$hit_line_parts[1]; # should be the same as in $str # check
-							my$hit_qualA=$hit_line_parts[4];
-							my$hit_qualB=$hit_line_parts[5];
-							my$ref_seq=$hit_line_parts[6];
-
-							my$single_sample_hit_string="\t$hit_qunat";
-  	      		$allsamplelines="$allsamplelines$single_sample_hit_string";# attaching current result to all others of the same coords
-							if($allsamplelines=~/chr/){
-								warn "error in file: $allsamplelines should not include coordinates\nfull line: $line_of_i\n";
+					my$allonesample= $allinfoonesamplehash{$single_sample};
+	        			if($allonesample=~/$circcand\t*.*\n/gi){### is the circ is found in sample### make this more explicit: rule out coords+1 at the end by \t??
+						my$line_of_i=$&;
+	          				my$lineonesample=$line_of_i; #declare the interesting line
+						$lineonesample=~s/\n//g;
+						my@hit_line_parts=split(/\s+/,$lineonesample);
+						# this line should be like chr1:117402185-117420649	+	trimmed.Lena_12__2	38	1	1 NR_00475
+						my$hit_qunat=$hit_line_parts[3];
+						my$strand=$hit_line_parts[1]; # should be the same as in $str # check
+						my$hit_qualA=$hit_line_parts[4];
+						my$hit_qualB=$hit_line_parts[5];
+						my$ref_seq=$hit_line_parts[6];
+						my$single_sample_hit_string="\t$hit_qunat";
+						$allsamplelines="$allsamplelines$single_sample_hit_string";# attaching current result to all others of the same coords
+						if($allsamplelines=~/chr/){
+							warn "error in file: $allsamplelines should not include coordinates\nfull line: $line_of_i\n";
+						}
+						if($check_refseq){# for files with gene names instead of NM/NR/XR/XM
+							if(($hit_qunat=~/[A-z]/)||($hit_qualA=~/[A-z]/)||($hit_qualB=~/[A-z]/)||(!($ref_seq=~/[NX][RMC]_[0-9]{3,11}/))){# sanity checks on the current line of interest
+								warn "found mistake in line, no Refseqid?: $lineonesample\n";
 							}
-							if($check_refseq){# for files with gene names instead of NM/NR/XR/XM
-								if(($hit_qunat=~/[A-z]/)||($hit_qualA=~/[A-z]/)||($hit_qualB=~/[A-z]/)||(!($ref_seq=~/[NX][RMC]_[0-9]{3,11}/))){# sanity checks on the current line of interest
-									warn "found mistake in line, no Refseqid?: $lineonesample\n";
-								}
-							}
-
-	  				}
-        		else{# new: if circ not seen in current sample
-							chomp $single_sample;
-	      			$allsamplelines="$allsamplelines\t0";
-	  				}
-  			}
+						}
+					}
+	        			else{# new: if circ not seen in current sample
+						chomp $single_sample;
+	      				$allsamplelines="$allsamplelines\t0";
+					}
+				}
 				$basicinfo=~s/\n//g;
 				$gene_name=~s/\n//g;
 				if(($circcand=~/\:/)&&($circcand=~/^chr/)&&($str=~/[+-]/)){
-  					my$linestring="$circcand\t$str\t$basicinfo\t$gene_name\t$circn\t$allsamplelines\n";
-	  				$linestring  =~s/\t\t/\t/g;
-	  				print OU $linestring;
-	  				$linestring="";
-						$gene_name="";
+					my$linestring="$circcand\t$str\t$basicinfo\t$gene_name\t$circn\t$allsamplelines\n";
+					$linestring  =~s/\t\t/\t/g;
+					print OU $linestring;
+					$linestring="";
+					$gene_name="";
 				}
 				else{			# in case something with the line is wrong
-	  				warn "error in line: circand is $circcand \n basicinfo is $basicinfo \n and presencething is \n";
+					warn "error in line: circand is $circcand \n basicinfo is $basicinfo \n and presencething is \n";
 				}
-  		}
-  	}
-  	$pf->finish;
-  }
+			}
+		}
+	  	$pf->finish;
+	}
 }# findc end
 $pf->wait_all_children;
 my$end=time;

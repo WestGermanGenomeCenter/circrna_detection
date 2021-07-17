@@ -31,7 +31,7 @@ rule _cx_e_annotate_circs:
   output:
     cx_out1=config['prefix'] + "/cx_out/run_{name}" + "/CIRCexplorer_circ.txt"
   shell:
-    "cd {params.processing_dir} && {params.annotate_cmd} -r {params.refseq_file} -g {params.fasta_files} -j {input.fus_junc}"
+    "cd {params.processing_dir} && {params.annotate_cmd} -r {params.refseq_file} -g {params.fasta_files} -j {input.fus_junc} && rm *.sam"
 # cx2 mode     "{params.annotate_cmd} -r {params.refseq_file} -g {params.fasta_files} -b {input} -o {output}"
 
 

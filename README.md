@@ -11,6 +11,9 @@ circs_snake: a snakemake workflow for circular RNA detection and quantification 
 
 
 additional credits to the original pipelines authors:
+
 https://github.com/marvin-jens/find_circ
+
 https://github.com/dieterich-lab/DCC
+
 https://github.com/YangLab/CIRCexplorer
