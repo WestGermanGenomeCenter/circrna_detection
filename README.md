@@ -3,7 +3,7 @@ circs_snake: a snakemake workflow for circular RNA detection and quantification 
 
 ## how to get started
 
-- get the code: git clone https://github.com/daaaaande/circs_snake
+- get the code: git clone https://github.com/WestGermanGenomeCenter/circrna_detection
 - personalize: nano config.yaml
 - prepare: copy/move your input files (paired RNAseq .fastq files) to circs_snake/.
 - also create samplesheet needed: more in the config/ readme
