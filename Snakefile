@@ -1,5 +1,5 @@
 configfile: "config.yaml"
-samplesfile = "samples.tsv"
+samplesfile = config["prefix"] + "/samples.tsv"
 import pandas as pd
 
 samples_df = pd.read_table(samplesfile).set_index("samples", drop=False)
@@ -233,9 +233,9 @@ rule _r03_create_infile:
   conda:
     "envs/parent_env.yaml"
   output:
-    infile=samplesfile # workaround for now, delete the old infile before a new one get created
+    infile=config["prefix"] + "/samples.tsv" # workaround for now, delete the old infile before a new one get created
   shell:
-    "cd {params.dir_to_cd_to} && perl {params.perl_script} --i {input} --l1 {params.lane_1ident} --l2 {params.lane_2ident} >{output}"
+    "rm -q {output} && cd {params.dir_to_cd_to} && perl {params.perl_script} --i {input} --l1 {params.lane_1ident} --l2 {params.lane_2ident} >{output}"
 
 rule _r02_create_fastq_list:
   input:

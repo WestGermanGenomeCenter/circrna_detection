@@ -20,9 +20,9 @@ library(utils)
 ######### full quantifications##################
 
 # heatmap files
-heat_find_circ=read.table(file=args[1], header=T,sep="\t", fill = TRUE,quote = "")
-heat_circex1=read.table(file=args[2], header=T,sep="\t", fill = TRUE,quote = "")
-heat_dcc=read.table(file=args[3], header=T,sep="\t", fill = TRUE,quote = "")
+heat_find_circ=read.table(file=args[1], header=T,sep="\t", fill = TRUE,quote = "",check.names = F)
+heat_circex1=read.table(file=args[2], header=T,sep="\t", fill = TRUE,quote = "",check.names = F)
+heat_dcc=read.table(file=args[3], header=T,sep="\t", fill = TRUE,quote = "",check.names = F)
 # DCC had an extra sample name called sample, that should be an error, thus removing it...
 # convert to numeric for calculations
 # remoxe X from one, thus from all

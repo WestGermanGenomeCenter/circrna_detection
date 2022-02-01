@@ -11,8 +11,13 @@ if (length(args)<3) {
 }
 unused_colnames=c("X","X.1")
 # get the df, filter out the info columns and the non-info columns
+#args[1]="/home/daric/work_WGGC/circRNA_detection/debug_norm/test_run_BMFZ_2samplesordered_find_circ_approved_by_all_three.csv"
+#args[2]="/home/daric/work_WGGC/circRNA_detection/debug_norm/reads_per_sample_test_run_BMFZ_2samples.tsv"
+#args[3]="/home/daric/work_WGGC/circRNA_detection/debug_norm/test.tsv"
+  
+  
+heat_dcc=read.csv(file=args[1],check.names = F)
 
-heat_dcc=read.csv(file=args[1])
 heat_dcc=heat_dcc[,!(colnames(heat_dcc)%in% unused_colnames )]
 #heat_dcc=read.csv("/home/daric/work_enclave/hpc_outputs/atrt_david_part2/output_hg19/vote_hg19/david_atrt_part2ordered_dcc_approved_by_all_three.csv",header = T,sep=",")
 sapply(heat_dcc,as.numeric)
@@ -44,6 +49,10 @@ check_df=cbind(as.character(colnames(clean_only_q)),read_counts)
 #head(check_df)
 colnames(check_df)=c("samples_raw_df","sample_reads_df","reads")
 print("normalizing now with the following numbers: ")
+
+# add fun to check if samplenames are the same everywhere- this lead to failures in the past!
+
+
 print (check_df)
 write.csv(check_df,"normalization_df.csv")
 
@@ -59,7 +68,17 @@ normalize_only_quants_df <- function(quants_df,n_readsmil_ordered){
     o=o+1
     col_oi=quants_df[,names(quants_df)==col]
     #col_oi=select(quants_df,col)
+    # compare names, check again - 
+    name_1=check_df$samples_raw_df[o]
+    name_2=check_df$sample_reads_df[o]
+    if(!(name_1 == name_2)){
+      stop(paste("sample name number",o,"is not the same. please check the normalization_df!","\n names compared:",name_1,"and",name_2))
+    }
+    
+    
+    
     num_to_norm_to=as.numeric(as.character(n_readsmil_ordered[o]))
+    # 
     print (paste("now normalizing ",col ,"with number ",num_to_norm_to))
     norm_col=col_oi / num_to_norm_to
     new_df=cbind(new_df,norm_col)
