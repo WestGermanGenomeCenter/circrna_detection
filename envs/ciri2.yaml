@@ -1,0 +1,9 @@
+name: circrna_ciri2
+channels:
+  - bioconda
+  - conda-forge
+  - defaults
+dependencies:
+  - bwa =0.7.18.*
+  - samtools =1.20.*
+  - perl =5.32.*

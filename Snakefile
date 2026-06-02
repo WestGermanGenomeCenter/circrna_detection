@@ -1,281 +1,577 @@
-configfile: "config.yaml"
-samplesfile = config["prefix"] + "/samples.tsv"
+"""
+circrna_pipeline  –  v2.0
+Snakemake circRNA detection & quantification pipeline
+
+Detection tools
+  - CIRCexplorer2  (STAR chimeric alignment)
+  - CIRI2          (BWA-MEM alignment)
+
+Only circRNAs detected by BOTH tools (2-of-2 consensus) are retained,
+then normalised to RPM (back-splice junction reads / mapped reads × 10⁶).
+"""
+
 import pandas as pd
+from pathlib import Path
 
-samples_df = pd.read_table(samplesfile).set_index("samples", drop=False)
-sample_names = list(samples_df['samples'])
+# ── configuration ────────────────────────────────────────────────────────────
+configfile: "config.yaml"
 
+samples_df  = pd.read_csv(config["samplesheet"])
+SAMPLES     = samples_df["sample"].tolist()
+OUTPUT_DIR  = config["output_dir"]
+
+# ── helper: final outputs ─────────────────────────────────────────────────────
+def get_all_outputs():
+    outputs = []
+   # outputs += expand(
+   #     "{output_dir}/qc/{sample}_R1_fastqc.html",
+   #     output_dir=OUTPUT_DIR, sample=SAMPLES
+   # )
+    outputs += expand(
+        "{output_dir}/trimmed/{sample}_R1_trimmed.fq.gz",
+        output_dir=OUTPUT_DIR, sample=SAMPLES
+    )
+    outputs += expand(
+        "{output_dir}/star/{sample}/Aligned.sortedByCoord.out.bam",
+        output_dir=OUTPUT_DIR, sample=SAMPLES
+    )
+    outputs += expand(
+        "{output_dir}/bwa/{sample}/{sample}.sorted.bam",
+        output_dir=OUTPUT_DIR, sample=SAMPLES
+    )
+    outputs += expand(
+        "{output_dir}/circexplorer2/{sample}/{sample}_circexplorer2.txt",
+        output_dir=OUTPUT_DIR, sample=SAMPLES
+    )
+    outputs += expand(
+        "{output_dir}/ciri2/{sample}/{sample}.ciri2.tsv",
+        output_dir=OUTPUT_DIR, sample=SAMPLES
+    )
+
+    outputs += expand(
+        "{output_dir}/featurecounts/all_samples_linear.counts.txt",
+        output_dir=OUTPUT_DIR
+    )
+
+    outputs += expand(
+        "{output_dir}/consensus/{sample}/{sample}_consensus.tsv",
+        output_dir=OUTPUT_DIR, sample=SAMPLES
+    )
+    outputs += [
+        f"{OUTPUT_DIR}/final/cx2_raw.tsv",
+        f"{OUTPUT_DIR}/final/cx2_rpm.tsv",
+        f"{OUTPUT_DIR}/final/ciri2_raw.tsv",
+        f"{OUTPUT_DIR}/final/ciri2_rpm.tsv",
+    ]
+
+    outputs += [
+        f"{OUTPUT_DIR}/reports/linear_report.html",
+        f"{OUTPUT_DIR}/reports/cx2_report.html",
+        f"{OUTPUT_DIR}/reports/ciri2_report.html",
+]
+
+
+
+
+    outputs += [f"{OUTPUT_DIR}/multiqc_report.html"]
+    return outputs
 
 
 rule all:
-  input:
-    cx2_V_N=config['prefix']+"/cx_out/"+config["run_name"]+"/"+"normed_voted_cx_output.csv",
-    dc2_V_N=config['prefix']+"/dc_out/"+config["run_name"]+"/"+"normed_voted_dc_output.csv",
-    fc2_V_N=config['prefix']+"/fc_out/"+config["run_name"]+"/"+"normed_voted_fc_output.csv"
+    input:
+        get_all_outputs()
+
+
+# ── QC ────────────────────────────────────────────────────────────────────────
+rule fastqc:
+    input:
+        r1 = lambda wc: samples_df.loc[samples_df["sample"] == wc.sample, "fastq_r1"].values[0],
+        r2 = lambda wc: samples_df.loc[samples_df["sample"] == wc.sample, "fastq_r2"].values[0]
+    output:
+        html_r1 = "{output_dir}/qc/{sample}_R1_fastqc.html",
+        html_r2 = "{output_dir}/qc/{sample}_R2_fastqc.html",
+        zip_r1  = "{output_dir}/qc/{sample}_R1_fastqc.zip",
+        zip_r2  = "{output_dir}/qc/{sample}_R2_fastqc.zip"
+    params:
+        outdir = "{output_dir}/qc"
+    conda:
+        "envs/qc.yaml"
+    log:
+        "{output_dir}/logs/fastqc/{sample}.log"
+    resources:
+        threads  = 2,
+        mem_gb   = lambda wildcards, attempt: 4 + (attempt * 2),
+        time_hrs = lambda wildcards, attempt: attempt * 1
+    message:
+        "FastQC on {wildcards.sample} ..."
+    shell:
+        """
+        fastqc -t {resources.threads} -o {params.outdir} \
+            {input.r1} {input.r2} >{log} 2>&1
+        # rename to canonical names expected downstream        mv {params.outdir}/$(basename {input.r1} .fastq.gz)_fastqc.html {output.html_r1}
+        mv {params.outdir}/$(basename {input.r1} .fastq.gz)_fastqc.zip  {output.zip_r1}
+        mv {params.outdir}/$(basename {input.r2} .fastq.gz)_fastqc.html {output.html_r2}
+        mv {params.outdir}/$(basename {input.r2} .fastq.gz)_fastqc.zip  {output.zip_r2}
+        """
+
+
+# ── adapter trimming ──────────────────────────────────────────────────────────
+rule trim_galore:
+    input:
+        r1 = lambda wc: samples_df.loc[samples_df["sample"] == wc.sample, "fastq_r1"].values[0],
+        r2 = lambda wc: samples_df.loc[samples_df["sample"] == wc.sample, "fastq_r2"].values[0]
+    output:
+        r1      = "{output_dir}/trimmed/{sample}_R1_trimmed.fq.gz",
+        r2      = "{output_dir}/trimmed/{sample}_R2_trimmed.fq.gz"
+    params:
+        outdir = "{output_dir}/trimmed",
+        extra  = config.get("trim_galore_extra"),
+        long_r1="{output_dir}/trimmed/{sample}_R1_001_val_1.fq.gz",
+        long_r2="{output_dir}/trimmed/{sample}_R2_001_val_2.fq.gz"
+    conda:
+        "envs/qc.yaml"
+    log:
+        "{output_dir}/logs/trim_galore/{sample}.log"
+    resources:
+        threads  = lambda wildcards, attempt: attempt * 8,
+        mem_gb   = lambda wildcards, attempt: 12 + (attempt * 4),
+        time_hrs = lambda wildcards, attempt: attempt * 2
+    message:
+        "Trimming adapters for {wildcards.sample} ..."
+    shell:
+        """
+        trim_galore {params.extra} \
+            --cores {resources.threads} \
+            -o {params.outdir} \
+            --paired \
+            {input.r1} {input.r2} >{log} --fastqc 2>&1
+            # renaming the files for the run
+        mv {params.long_r1} {output.r1} >{log}  2>&1
+        mv {params.long_r2} {output.r2} >{log}  2>&1
+        """
+
+
+# ═══════════════════════════════════════════════════════════════════════════════
+#  CIRCexplorer2 branch  (STAR chimeric alignment → CIRCexplorer2 parse/annotate)
+# ═══════════════════════════════════════════════════════════════════════════════
+
+rule star_align_chimeric:
+    """
+    STAR alignment with chimeric reads enabled for CIRCexplorer2.
+    --chimSegmentMin 10 is the recommended minimum for back-splice detection.
+    """
+    input:
+        r1    = "{output_dir}/trimmed/{sample}_R1_trimmed.fq.gz",
+        r2    = "{output_dir}/trimmed/{sample}_R2_trimmed.fq.gz",
+    output:
+        bam       = temp("{output_dir}/star/{sample}/Aligned.sortedByCoord.out.bam"),
+        chimeric  = "{output_dir}/star/{sample}/Chimeric.out.junction",
+        log_final = "{output_dir}/star/{sample}/Log.final.out"
+    params:
+        prefix      = "{output_dir}/star/{sample}/",
+        gtf         = config["gtf"],
+        extra       = config.get("star_extra", ""),
+        index = config["star_index"]
+
+    conda:
+        "envs/star.yaml"
+    log:
+        "{output_dir}/logs/star/{sample}.log"
+    resources:
+        threads  = lambda wildcards, attempt: attempt * 8,
+        mem_gb   = lambda wildcards, attempt: 32 + (attempt * 16),
+        time_hrs = lambda wildcards, attempt: attempt * 4
+    message:
+        "STAR chimeric alignment for {wildcards.sample} ..."
+    shell:
+        """
+        STAR \
+            --runThreadN {resources.threads} \
+            --genomeDir {params.index} \
+            --readFilesIn {input.r1} {input.r2} \
+            --readFilesCommand zcat \
+            --outSAMtype BAM SortedByCoordinate \
+            --outSAMattributes NH HI AS NM MD \
+            --outFileNamePrefix {params.prefix} \
+            --sjdbGTFfile {params.gtf} \
+            --chimSegmentMin 10 \
+            --chimScoreMin 1 \
+            --chimJunctionOverhangMin 10 \
+            --chimOutType Junctions SeparateSAMold \
+            --alignSJDBoverhangMin 1 \
+            --alignSJoverhangMin 5 \
+            --outFilterMismatchNmax 2 \
+            --outFilterMultimapNmax 20 \
+            --runRNGseed 1234 \
+            {params.extra} >{log} 2>&1
+        """
+#         samtools index {output.bam} >>{log} 2>&1 # maybe extra rule, maybe add later. is the index actually needed??
+
+
+rule circexplorer2_parse:
+    """Convert STAR chimeric junctions to the CIRCexplorer2 BED format."""
+    input:
+        chimeric = "{output_dir}/star/{sample}/Chimeric.out.junction"
+    output:
+        bed = "{output_dir}/circexplorer2/{sample}/back_spliced_junction.bed"
+    conda:
+        "envs/circexplorer2.yaml"
+    log:
+        "{output_dir}/logs/circexplorer2/{sample}_parse.log"
+    resources:
+        threads  = 1,
+        mem_gb   = lambda wildcards, attempt: 4 + attempt,
+        time_hrs = lambda wildcards, attempt: attempt * 1
+    message:
+        "CIRCexplorer2 parse for {wildcards.sample} ..."
+    shell:
+        """
+        CIRCexplorer2 parse \
+            -t STAR \
+            -b {output.bed} \
+            {input.chimeric} >{log} 2>&1
+        """
+
+rule featurecounts:
+    """
+    Gene-level linear RNA counts from the STAR BAM.
+    Used for circ/linear ratio calculation and differential expression.
+    Chimeric reads are excluded via -Q 10 (multimapper filter).
+    """
+    input:
+        bam = expand("{output_dir}/star/{sample}/Aligned.sortedByCoord.out.bam",output_dir=OUTPUT_DIR,sample=SAMPLES),
+        gtf = config["gtf"]
+    output:
+        counts  = "{output_dir}/featurecounts/all_samples_linear.counts.txt",
+        summary = "{output_dir}/featurecounts/all_samples_linear.counts.txt.summary"
+    params:
+        strand  = config.get("featurecounts_strand", 2),   # 0=unstranded, 1=forward, 2=reverse
+        extra   = config.get("featurecounts_extra", "")
+    conda:
+        "envs/featurecounts.yaml"
+    log:
+        "{output_dir}/logs/featurecounts/featurecounts_all.log"
+    resources:
+        threads  = lambda wildcards, attempt: attempt * 4,
+        mem_gb   = lambda wildcards, attempt: 8 + (attempt * 4),
+        time_hrs = lambda wildcards, attempt: attempt * 1
+    message:
+        "featureCounts linear RNA quantification for all samples ..."
+    shell:
+        """
+        featureCounts \
+            -T {resources.threads} \
+            -a {input.gtf} \
+            -o {output.counts} \
+            -p --countReadPairs \
+            -B \
+            -C \
+            -s {params.strand} \
+            -Q 10 \
+            --fracOverlap 0.5 \
+            {params.extra} \
+            {input.bam} >{log} 2>&1
+        """
 
 
 
-rule _r09_norm_circs:
-  input:
-    cx2_voted=config['prefix']+"/"+config["run_name"]+"ordered_circex_approved_by_all_three.csv",
-    dc2_voted=config['prefix']+"/"+config["run_name"]+"ordered_dcc_approved_by_all_three.csv",
-    fc2_voted=config['prefix']+"/"+config["run_name"]+"ordered_find_circ_approved_by_all_three.csv"
-  params:
-    norm_script=config['normalization_script'],
-    reads_per_samplefile=config["prefix"]+"/reads_per_sample_"+config["run_name"]+".tsv"
-  conda:
-    "envs/parent_env.yaml"
-  output:
-    cx2_V_N=config['prefix']+"/cx_out/"+config["run_name"]+"/"+"normed_voted_cx_output.csv",
-    dc2_V_N=config['prefix']+"/dc_out/"+config["run_name"]+"/"+"normed_voted_dc_output.csv",
-    fc2_V_N=config['prefix']+"/fc_out/"+config["run_name"]+"/"+"normed_voted_fc_output.csv"
-  shell:
-    "Rscript {params.norm_script} {input.cx2_voted} {params.reads_per_samplefile} {output.cx2_V_N} && Rscript {params.norm_script} {input.fc2_voted} {params.reads_per_samplefile} {output.fc2_V_N} && Rscript {params.norm_script} {input.dc2_voted} {params.reads_per_samplefile} {output.dc2_V_N}"
+
+rule circexplorer2_annotate:
+    """Annotate back-splice junctions with gene model information."""
+    input:
+        bed       = "{output_dir}/circexplorer2/{sample}/back_spliced_junction.bed",
+        ref       = config["gene_pred"],        # UCSC genePred / refFlat format
+        genome    = config["genome_fasta"]
+    output:
+        circ_txt  = "{output_dir}/circexplorer2/{sample}/{sample}_circexplorer2.txt"
+    conda:
+        "envs/circexplorer2.yaml"
+    log:
+        "{output_dir}/logs/circexplorer2/{sample}_annotate.log"
+    resources:
+        threads  = 1,
+        mem_gb   = lambda wildcards, attempt: 8 + (attempt * 4),
+        time_hrs = lambda wildcards, attempt: attempt * 2
+    message:
+        "CIRCexplorer2 annotate for {wildcards.sample} ..."
+    shell:
+        """
+        CIRCexplorer2 annotate \
+            -r {input.ref} \
+            -g {input.genome} \
+            -b {input.bed} \
+            -o {output.circ_txt} >{log} 2>&1
+        """
 
 
-# ad rule: vote and normalization
-rule _r08_vote_circs:
-  input:
-    cx2_mat2=config['prefix']+"/cx_out/"+config["run_name"]+"/all_"+config["run_name"]+"_cx2.mat2",
-    dc2_mat2=config['prefix']+"/dc_out/"+config["run_name"]+"/all_"+config["run_name"]+"_dcc2.mat2",
-    fc2_mat2=config['prefix']+"/fc_out/"+config["run_name"]+"/all_"+config["run_name"]+"_fc2.mat2"
-  params:
-    r_script=config['voting_script'],
-    dir_out=config['prefix'],
-    run_name=config["run_name"],
-  conda:
-    "envs/parent_env.yaml"
-  output:
-    cx2_voted=config['prefix']+"/"+config["run_name"]+"ordered_circex_approved_by_all_three.csv",
-    dc2_voted=config['prefix']+"/"+config["run_name"]+"ordered_dcc_approved_by_all_three.csv",
-    fc2_voted=config['prefix']+"/"+config["run_name"]+"ordered_find_circ_approved_by_all_three.csv"
-  shell:
-    "cd {params.dir_out} && Rscript {params.r_script} {input.fc2_mat2} {input.cx2_mat2} {input.dc2_mat2} {params.run_name}"
+# ═══════════════════════════════════════════════════════════════════════════════
+#  CIRI2 branch  (BWA-MEM → CIRI2)
+# ═══════════════════════════════════════════════════════════════════════════════
 
+rule bwa_align:
+    """
+    BWA-MEM alignment required by CIRI2.
+    CIRI2 reads the SAM directly (it needs the SA tag for chimeric detection),
+    so we keep the unsorted SAM and also produce a sorted BAM for QC / reuse.
+    """
+    input:
+        r1    = "{output_dir}/trimmed/{sample}_R1_trimmed.fq.gz",
+        r2    = "{output_dir}/trimmed/{sample}_R2_trimmed.fq.gz",
+    output:
+        sam = temp("{output_dir}/bwa/{sample}/{sample}.sam"),
+        bam = temp("{output_dir}/bwa/{sample}/{sample}.sorted.bam"),
+        bai = "{output_dir}/bwa/{sample}/{sample}.sorted.bam.bai"
+    params:
+        rg = r"@RG\tID:{sample}\tSM:{sample}\tPL:ILLUMINA",
+        index = config["bwa_index"]         # prefix (genome.fa → genome.fa.bwt etc.)
+    conda:
+        "envs/bwa.yaml"
+    log:
+        "{output_dir}/logs/bwa/{sample}.log"
+    resources:
+        threads  = lambda wildcards, attempt: attempt * 8,
+        mem_gb   = lambda wildcards, attempt: 26 + (attempt * 8),
+        time_hrs = lambda wildcards, attempt: attempt * 3
+    message:
+        "BWA-MEM alignment for {wildcards.sample} ..."
+    shell:
+        """
+        bwa mem \
+            -t {resources.threads} \
+            -T 19 \
+            -R '{params.rg}' \
+            {params.index} {input.r1} {input.r2} \
+            > {output.sam} 2>{log}
 
-
-rule _r07c_run_matrix2_cx:
-  input:
-    cx_hg38_mat1=config['prefix']+"/cx_out/"+config["run_name"]+"/all_"+config["run_name"]+"_cx2_tsvs.mat1"
-  params:
-    perl_script_mm2=config['mm2_script'],
-    micrornas_file=config['micrornas_file'],
-    coding_circnas_file=config['circbank_coding_file'],
-    hallmarks_file=config['hallmarks_file'],
-    ensembl_file=config['ensembl_file'],
-    mapping_script=config['mapping_script']
-  conda:
-    "envs/parent_env.yaml"
-  output:
-    cx2_mat2=config['prefix']+"/cx_out/"+config["run_name"]+"/all_"+config["run_name"]+"_cx2.mat2"
-  shell:
-    "perl {params.perl_script_mm2} --i {input} --o {output} --m {params.micrornas_file} --c {params.coding_circnas_file} --h {params.hallmarks_file} --e {params.ensembl_file} --n {params.mapping_script} --e {params.ensembl_file} --excl_cb 1"
-
-
-
-rule _r07b_run_matrix2_dc:
-  input:
-    dc_hg38_mat1=config['prefix']+"/dc_out/"+config["run_name"]+"/all_"+config["run_name"]+"_dcc2_tsvs.mat1"
-  params:
-    perl_script_mm2=config['mm2_script'],
-    micrornas_file=config['micrornas_file'],
-    coding_circnas_file=config['circbank_coding_file'],
-    hallmarks_file=config['hallmarks_file'],
-    ensembl_file=config['ensembl_file'],
-    mapping_script=config['mapping_script']
-  conda:
-    "envs/parent_env.yaml"
-  output:
-    dc2_mat2=config['prefix']+"/dc_out/"+config["run_name"]+"/all_"+config["run_name"]+"_dcc2.mat2"
-  shell:
-    "perl {params.perl_script_mm2} --i {input} --o {output} --m {params.micrornas_file} --c {params.coding_circnas_file} --h {params.hallmarks_file} --e {params.ensembl_file} --n {params.mapping_script} --e {params.ensembl_file} --excl_cb 1"
-
-
-
-rule _r07a_run_matrix2_fc:
-  input:
-    fc_hg38_mat1=config['prefix']+"/fc_out/"+config["run_name"]+"/all_"+config["run_name"]+"_fc2_tsvs.mat1"
-  params:
-    perl_script_mm2=config['mm2_script'],
-    micrornas_file=config['micrornas_file'],
-    coding_circnas_file=config['circbank_coding_file'],
-    hallmarks_file=config['hallmarks_file'],
-    ensembl_file=config['ensembl_file'],
-    mapping_script=config['mapping_script']
-  conda:
-    "envs/parent_env.yaml"
-  output:
-    fc2_mat2=config['prefix']+"/fc_out/"+config["run_name"]+"/all_"+config["run_name"]+"_fc2.mat2"
-  shell:
-    "perl {params.perl_script_mm2} --i {input} --o {output} --m {params.micrornas_file} --c {params.coding_circnas_file} --h {params.hallmarks_file} --e {params.ensembl_file} --n {params.mapping_script} --e {params.ensembl_file} --excl_cb 1"
-
-
-rule _r06c_run_matrixmaker_cx:
-  input:
-    all_cx_out_catted=config['prefix']+"/cx_out/"+config["run_name"]+"/all_"+config["run_name"]+"_cx2_tsvs.tx"
-  params:
-    perl_script_m1=config['mm1_script'],
-    annotation_file_m1=config['mm1_refseq_file'],
-    circs_bed_file=config['mm1_circ_bedfile']
-  conda:
-    "envs/parent_env.yaml"
-  output:
-    cx_hg38_mat1=config['prefix']+"/cx_out/"+config["run_name"]+"/all_"+config["run_name"]+"_cx2_tsvs.mat1"
-  shell:
-    "perl {params.perl_script_m1} --i {input} --o {output} --c {params.circs_bed_file} --g {params.annotation_file_m1}"
-
-
-
-rule _r06b_run_matrixmaker_dc:
-  input:
-    all_dc_out_catted=config['prefix']+"/dc_out/"+config["run_name"]+"/all_"+config["run_name"]+"_dcc2_tsvs.tx"
-  params:
-    perl_script_m1=config['mm1_script'],
-    annotation_file_m1=config['mm1_refseq_file'],
-    circs_bed_file=config['mm1_circ_bedfile']
-  conda:
-    "envs/parent_env.yaml"
-  output:
-    dc_hg38_mat1=config['prefix']+"/dc_out/"+config["run_name"]+"/all_"+config["run_name"]+"_dcc2_tsvs.mat1"
-  shell:
-    "perl {params.perl_script_m1} --i {input} --o {output} --c {params.circs_bed_file} --g {params.annotation_file_m1}"
+        samtools sort -@ {resources.threads} -o {output.bam} {output.sam} >>{log} 2>&1
+        samtools index {output.bam} >>{log} 2>&1
+        """
 
 
 
 
-rule _r06a_run_matrixmaker_fc:
-  input:
-    all_fc2_out_catted=config['prefix']+"/fc_out/"+config["run_name"]+"/all_"+config["run_name"]+"_fc2_tsvs.tx"
-  params:
-    perl_script_m1=config['mm1_script'],
-    annotation_file_m1=config['mm1_refseq_file'],
-    circs_bed_file=config['mm1_circ_bedfile']
-  conda:
-    "envs/parent_env.yaml"
-  output:
-    fc_hg38_mat1=config['prefix']+"/fc_out/"+config["run_name"]+"/all_"+config["run_name"]+"_fc2_tsvs.mat1"
-  shell:
-    "perl {params.perl_script_m1} --i {input} --o {output} --c {params.circs_bed_file} --g {params.annotation_file_m1}"
+# ── one-time download of CIRI2 (no conda package exists) ─────────────────────
+CIRI2_SCRIPT = "resources/CIRI2.pl"
+
+localrules: download_ciri2
+
+rule download_ciri2:
+    output:
+        CIRI2_SCRIPT
+    shell:
+        """
+        mkdir -p resources
+        wget -q -O resources/CIRI_v2.0.6.zip \
+            https://sourceforge.net/projects/ciri/files/CIRI2/CIRI_v2.0.6.zip/download
+        unzip -jo resources/CIRI_v2.0.6.zip "*/CIRI2.pl" -d resources/
+        chmod +x resources/CIRI2.pl
+        rm resources/CIRI_v2.0.6.zip
+        """
+
+rule ciri2:
+    input:
+        sam    = "{output_dir}/bwa/{sample}/{sample}.sam",
+        genome = config["genome_fasta"],
+        gtf    = config["gtf"],
+        script = CIRI2_SCRIPT           # ensures download runs first
+    output:
+        tsv    = "{output_dir}/ciri2/{sample}/{sample}.ciri2.tsv"
+    params:
+        min_reads = config.get("ciri2_min_reads", 2),
+        dir="{output_dir}/ciri2/{sample}/"
+    conda:
+        "envs/ciri2.yaml"
+    log:
+        "{output_dir}/logs/ciri2/{sample}.log"
+    resources:
+        threads  = lambda wildcards, attempt: attempt * 6,
+        mem_gb   = lambda wildcards, attempt: 32 + (attempt * 8),
+        time_hrs = lambda wildcards, attempt: attempt * 2
+    message:
+        "CIRI2 circRNA detection for {wildcards.sample} ..."
+    shell:
+        """
+        rm -rf {params.dir}
+        mkdir -p {params.dir}
+        perl {input.script} \
+            -I {input.sam} \
+            -O {output.tsv} \
+            -F {input.genome} \
+            -A {input.gtf} \
+            -T {resources.threads} \
+            -M {params.min_reads} \
+            >{log} 2>&1
+        """
 
 
 
+# ═══════════════════════════════════════════════════════════════════════════════
+#  Consensus & normalisation
+# ═══════════════════════════════════════════════════════════════════════════════
+
+rule consensus_filter:
+    """
+    Keep only circRNAs detected by BOTH CIRCexplorer2 AND CIRI2 (2-of-2 vote).
+    Outputs a unified TSV with BSJ coordinates + read counts from each tool.
+    Normalisation: RPM = (BSJ_reads / total_uniquely_mapped) × 1e6
+    """
+    input:
+        cx2        = "{output_dir}/circexplorer2/{sample}/{sample}_circexplorer2.txt",
+        ciri2    = "{output_dir}/ciri2/{sample}/{sample}.ciri2.tsv",
+        #ciri2    = "{output_dir}/ciri_full/{sample}/{sample}.ciri_full.tsv",
+        star_log   = "{output_dir}/star/{sample}/Log.final.out"
+    output:
+        consensus  = "{output_dir}/consensus/{sample}/{sample}_consensus.tsv"
+    conda:
+        "envs/python.yaml"
+    log:
+        "{output_dir}/logs/consensus/{sample}.log"
+    resources:
+        threads  = 1,
+        mem_gb   = lambda wildcards, attempt: 4 + attempt,
+        time_hrs = lambda wildcards, attempt: attempt * 1
+    message:
+        "2-of-2 consensus filter & RPM normalisation for {wildcards.sample} ..."
+    script:
+        "scripts/consensus_filter.py"
 
 
-rule _r05c_collect_tsvs_cx: # extend this rule to include outfiles from the last step respectively
-  input:
-    cx_outfiles=expand(config['prefix'] + "/cx_out/run_{name}" + "/processed_run_{name}.tsv",name=sample_names),
-    reads_per_samplefile=config["prefix"]+"/reads_per_sample_"+config["run_name"]+".tsv" # to get the preparations to be executed
-  params:
-    run_name=config["run_name"]
-  conda:
-    "envs/parent_env.yaml"
-  output:
-    all_cx_out_catted=config['prefix']+"/cx_out/"+config["run_name"]+"/all_"+config["run_name"]+"_cx2_tsvs.tx"
-  shell:
-    "cat {input.cx_outfiles} >{output.all_cx_out_catted}"
-
-rule _r05b_collect_tsvs_dc: # extend this rule to include outfiles from the last step respectively
-  input:
-    dc2_outfiles=expand(config['prefix'] + "/dc_out/run_{name}" + "/processed_run_{name}.tsv",name=sample_names),
-    reads_per_samplefile=config["prefix"]+"/reads_per_sample_"+config["run_name"]+".tsv" # to get the preparations to be executed
-  params:
-    run_name=config["run_name"]
-  conda:
-    "envs/parent_env.yaml"
-  output:
-    all_dc_out_catted=config['prefix']+"/dc_out/"+config["run_name"]+"/all_"+config["run_name"]+"_dcc2_tsvs.tx"
-  shell:
-    "cat {input.dc2_outfiles} >{output.all_dc_out_catted}"
-
-rule _r05a_collect_tsvs_fc: # extend this rule to include outfiles from the last step respectively
-  input:
-    fc2_outfiles=expand(config['prefix'] + "/fc_out/run_{name}" + "/processed_run_{name}.tsv",name=sample_names),
-    reads_per_samplefile=config["prefix"]+"/reads_per_sample_"+config["run_name"]+".tsv" # to get the preparations to be executed
-  params:
-    run_name=config["run_name"]
-  conda:
-    "envs/parent_env.yaml"
-  output:
-    all_fc2_out_catted=config['prefix']+"/fc_out/"+config["run_name"]+"/all_"+config["run_name"]+"_fc2_tsvs.tx",
-
-  shell:
-    "cat {input.fc2_outfiles} >{output.all_fc2_out_catted}"
+rule merge_samples:
+    """
+    Merge all per-sample consensus TSVs into one wide matrix
+    (rows = circRNA, columns = samples, values = RPM).
+    """
+    input:
+        expand(
+            "{output_dir}/consensus/{sample}/{sample}_consensus.tsv",
+            output_dir=OUTPUT_DIR,
+            sample=SAMPLES
+        )
+    output:
+        cx2_raw   = "{output_dir}/final/cx2_raw.tsv",
+        cx2_rpm   = "{output_dir}/final/cx2_rpm.tsv",
+        ciri2_raw = "{output_dir}/final/ciri2_raw.tsv",
+        ciri2_rpm = "{output_dir}/final/ciri2_rpm.tsv"
+    params:
+        min_bsj = config.get("min_bsj", 2)
+    conda:
+        "envs/python.yaml"
+    log:
+        "{output_dir}/logs/merge_samples.log"
+    resources:
+        threads  = 1,
+        mem_gb   = 8,
+        time_hrs = 1
+    message:
+        "Merging all samples into final normalised matrices ..."
+    script:
+        "scripts/merge_samples.py"
 
 
-rule _r04_count_reads_fastqs:
-  # make another new script
-  input:
-    infile=samplesfile,
-    fastq_list_file=config["prefix"]+"/fastq_infiles_list.tx"
-  params:
-    dir_to_go=config["prefix"],
-    run_name=config["run_name"],
-    perl_script2=config["perl_script_dir"]+ "/fastq_list_to_reads_per_sample.pl",
-    lane_1ident=config["lane_ident1"]
-  conda:
-    "envs/parent_env.yaml"
-  output:
-    reads_per_samplefile=config["prefix"]+"/reads_per_sample_"+config["run_name"]+".tsv"
-  shell:
-    "cd {params.dir_to_go} && perl {params.perl_script2} --l1 {params.lane_1ident} --i {input.fastq_list_file} >{output}"
+# ── MultiQC ───────────────────────────────────────────────────────────────────
+rule multiqc:
+    input:
+     #   expand("{output_dir}/qc/{sample}_R1_fastqc.zip",   output_dir=OUTPUT_DIR, sample=SAMPLES),
+      #  expand("{output_dir}/qc/{sample}_R2_fastqc.zip",   output_dir=OUTPUT_DIR, sample=SAMPLES),
+        expand("{output_dir}/star/{sample}/Log.final.out", output_dir=OUTPUT_DIR, sample=SAMPLES)
+    output:
+        report = "{output_dir}/multiqc_report.html"
+    params:
+        outdir   = OUTPUT_DIR,
+        indir    = OUTPUT_DIR
+    conda:
+        "envs/qc.yaml"
+    log:
+        "{output_dir}/logs/multiqc.log"
+    resources:
+        threads  = 1,
+        mem_gb   = 4,
+        time_hrs = 1
+    message:
+        "MultiQC report ..."
+    shell:
+        """
+        multiqc {params.indir} \
+            --outdir {params.outdir} \
+            --filename multiqc_report.html \
+            --force >{log} 2>&1
+        """
+rule report_linear:
+    """
+    Interactive HTML QC report for linear gene expression counts.
+    Input: combined featureCounts matrix (all samples, one file).
+    Script: scripts/linear_report.py
+    Sections: Summary | QC Metrics | Sample Structure | Gene Analysis | Group Estimation
+    """
+    input:
+        counts = "{output_dir}/featurecounts/all_samples_linear.counts.txt"
+    output:
+        html = "{output_dir}/reports/linear_report.html"
+    conda:
+        "envs/reports.yaml"
+    log:
+        "{output_dir}/logs/reports/linear_report.log"
+    resources:
+        threads  = 1,
+        mem_gb   = lambda wildcards, attempt: 8 + (attempt * 4),
+        time_hrs = lambda wildcards, attempt: attempt * 1
+    message:
+        "Generating linear RNA QC report ..."
+    script:
+        "scripts/linear_report.py"
 
 
-# perl $perl_scripts_dir/fastq_list_to_infile_circs_ext.pl --i fastq_list_$proj_name.tx --g $proj_name --l1 $lane_diff --l2 $lane_to_id --m $paired_single_end_param >infile_$proj_name.tx
-rule _r03_create_infile:
-  input:
-    fastq_list_file=config["prefix"]+"/fastq_infiles_list.tx"
-  params:
-    perl_script=config["perl_script_dir"]+ "/snake_infile_creator.pl",
-    run_name=config["run_name"],
-    lane_1ident=config["lane_ident1"],
-    lane_2ident=config["lane_ident2"],
-    dir_to_cd_to=config["prefix"]
-  conda:
-    "envs/parent_env.yaml"
-  output:
-    infile=config["prefix"] + "/samples.tsv" # workaround for now, delete the old infile before a new one get created
-  shell:
-    "rm -q {output} && cd {params.dir_to_cd_to} && perl {params.perl_script} --i {input} --l1 {params.lane_1ident} --l2 {params.lane_2ident} >{output}"
-
-rule _r02_create_fastq_list:
-  input:
-    fc_2_chk_to_create=config["prefix"]+"/fc_out/"+config["run_name"]+"/chk.tx",
-    cx_2_chk_to_create=config["prefix"]+"/cx_out/"+config["run_name"]+"/chk.tx",
-    dc_2_chk_to_create=config["prefix"]+"/dc_out/"+config["run_name"]+"/chk.tx"
-  params:
-    dir_to_cd_to=config["prefix"]
-  conda:
-    "envs/parent_env.yaml"
-  output:
-    fastq_list_file=config["prefix"]+"/fastq_infiles_list.tx"
-  shell:
-    " cd {params.dir_to_cd_to} && ls -f1 *.fastq >{output}"
+# ── CIRCexplorer2 RPM matrix ──────────────────────────────────────────────────
+rule report_cx2:
+    """
+    Interactive HTML QC report for CIRCexplorer2 circRNA RPM values.
+    Input: wide RPM matrix from merge_samples.py (circRNAs × samples).
+    Script: scripts/circrna_report.py
+    Sections: Summary | QC Metrics | Sample Structure | circRNA Analysis | Group Estimation
+    """
+    input:
+        rpm = "{output_dir}/final/cx2_rpm.tsv"
+    output:
+        html = "{output_dir}/reports/cx2_report.html"
+    params:
+        tool_label = "CIRCexplorer2"
+    conda:
+        "envs/reports.yaml"
+    log:
+        "{output_dir}/logs/reports/cx2_report.log"
+    resources:
+        threads  = 1,
+        mem_gb   = lambda wildcards, attempt: 8 + (attempt * 4),
+        time_hrs = lambda wildcards, attempt: attempt * 1
+    message:
+        "Generating CIRCexplorer2 circRNA QC report ..."
+    script:
+        "scripts/circrna_report.py"
 
 
-rule _r01_prepare_hg38_dirs:
-  input:
-    run_file="full_config_hg19.yaml"
-  params:
-    fc2_dir=config["prefix"]+"/fc_out/",
-    dc2_dir=config["prefix"]+"/dc_out/",
-    cx2_dir=config["prefix"]+"/cx_out/",
-    fc_2_dir_to_create=config["prefix"]+"/fc_out/"+config["run_name"],
-    cx_2_dir_to_create=config["prefix"]+"/cx_out/"+config["run_name"],
-    dc_2_dir_to_create=config["prefix"]+"/dc_out/"+config["run_name"]
-  conda:
-    "envs/parent_env.yaml"
-  output:
-    # 3x chk.tx files, as before
-    fc2_chk=config["prefix"]+"/fc_out/"+"chk.tx",
-    dc2_chk=config["prefix"]+"/dc_out/"+"chk.tx",
-    cx2_chk=config["prefix"]+"/cx_out/"+"chk.tx",
-    fc_2_chk_to_create=config["prefix"]+"/fc_out/"+config["run_name"]+"/chk.tx",
-    cx_2_chk_to_create=config["prefix"]+"/cx_out/"+config["run_name"]+"/chk.tx",
-    dc_2_chk_to_create=config["prefix"]+"/dc_out/"+config["run_name"]+"/chk.tx"
-  shell:
-    "mkdir -p {params} && touch {output}"
-
-
-include:"cx/Snakefile"
-include:"dcc/Snakefile"
-include:"f_c/Snakefile"
+# ── CIRI2 RPM matrix ──────────────────────────────────────────────────────────
+rule report_ciri2:
+    """
+    Interactive HTML QC report for CIRI2 circRNA RPM values.
+    Input: wide RPM matrix from merge_samples.py (circRNAs × samples).
+    Script: scripts/circrna_report.py
+    Sections: Summary | QC Metrics | Sample Structure | circRNA Analysis | Group Estimation
+    """
+    input:
+        rpm = "{output_dir}/final/ciri2_rpm.tsv"
+    output:
+        html = "{output_dir}/reports/ciri2_report.html"
+    params:
+        tool_label = "CIRI2"
+    conda:
+        "envs/reports.yaml"
+    log:
+        "{output_dir}/logs/reports/ciri2_report.log"
+    resources:
+        threads  = 1,
+        mem_gb   = lambda wildcards, attempt: 8 + (attempt * 4),
+        time_hrs = lambda wildcards, attempt: attempt * 1
+    message:
+        "Generating CIRI2 circRNA QC report ..."
+    script:
+        "scripts/circrna_report.py"
