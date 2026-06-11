@@ -6,3 +6,7 @@ dependencies:
   - python =3.11.*
   - pandas =2.2.*
   - numpy =1.26.*
+  - matplotlib
+  - pathlib
+  - upsetplot
+  - matplotlib-venn

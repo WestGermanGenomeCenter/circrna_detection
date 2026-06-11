@@ -15,6 +15,24 @@ import re
 import logging
 import pandas as pd
 
+from pathlib import Path
+import matplotlib.pyplot as plt
+
+try:
+    from matplotlib_venn import venn2
+    HAS_VENN = True
+except ImportError:
+    HAS_VENN = False
+
+try:
+    from upsetplot import from_contents, UpSet
+    HAS_UPSET = True
+except ImportError:
+    HAS_UPSET = False
+
+
+
+
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger(__name__)
 
@@ -127,6 +145,129 @@ log.info(f"[{sample}] CIRI2 circRNAs: {len(ciri2)}")
 # 2-of-2 consensus: inner join on coordinate key
 consensus = pd.merge(cx2, ciri2, on="coord", how="inner")
 log.info(f"[{sample}] Consensus (2-of-2) circRNAs: {len(consensus)}")
+
+# new addition: plots and overlap tables
+# ------------------------------------------------------------------
+# overlap analysis between pipelines
+# ------------------------------------------------------------------
+
+output_dir = Path(out_path).parent
+
+cx2_set = set(cx2["coord"])
+ciri2_set = set(ciri2["coord"])
+
+shared_set = cx2_set & ciri2_set
+cx2_unique_set = cx2_set - ciri2_set
+ciri2_unique_set = ciri2_set - cx2_set
+
+log.info(
+    f"[{sample}] overlap={len(shared_set)} "
+    f"cx2_unique={len(cx2_unique_set)} "
+    f"ciri2_unique={len(ciri2_unique_set)}"
+)
+
+# ----------------------------
+# save coordinate lists
+# ----------------------------
+
+pd.DataFrame({"coord": sorted(shared_set)}).to_csv(
+    output_dir / f"{sample}_circRNAs_shared_between_pipelines.tsv",
+    sep="\t",
+    index=False
+)
+
+pd.DataFrame({"coord": sorted(cx2_unique_set)}).to_csv(
+    output_dir / f"{sample}_circRNAs_unique_to_CIRCexplorer2.tsv",
+    sep="\t",
+    index=False
+)
+
+pd.DataFrame({"coord": sorted(ciri2_unique_set)}).to_csv(
+    output_dir / f"{sample}_circRNAs_unique_to_CIRI2.tsv",
+    sep="\t",
+    index=False
+)
+
+# ----------------------------
+# venn diagram
+# ----------------------------
+
+if HAS_VENN:
+    plt.figure(figsize=(6, 6))
+
+    venn2(
+        [cx2_set, ciri2_set],
+        set_labels=("CIRCexplorer2", "CIRI2")
+    )
+
+    plt.title(f"{sample}: circRNA overlap")
+
+    venn_file = output_dir / f"{sample}_circRNA_overlap_venn.png"
+
+    plt.tight_layout()
+    plt.savefig(venn_file, dpi=300)
+    plt.close()
+
+    log.info(f"[{sample}] Venn diagram written: {venn_file}")
+
+else:
+    log.warning(
+        "matplotlib-venn not installed; skipping venn diagram"
+    )
+
+# ----------------------------
+# upset plot
+# ----------------------------
+
+if HAS_UPSET:
+
+    upset_data = from_contents(
+        {
+            "CIRCexplorer2": sorted(cx2_set),
+            "CIRI2": sorted(ciri2_set),
+        }
+    )
+
+    upset = UpSet(
+        upset_data,
+        subset_size="count",
+        show_counts=True
+    )
+
+    fig = plt.figure(figsize=(8, 5))
+    upset.plot(fig=fig)
+
+    upset_file = output_dir / f"{sample}_circRNA_overlap_upset.png"
+
+    plt.suptitle(f"{sample}: circRNA overlap")
+    plt.savefig(upset_file, dpi=300, bbox_inches="tight")
+    plt.close()
+
+    log.info(f"[{sample}] UpSet plot written: {upset_file}")
+
+else:
+    log.warning(
+        "upsetplot not installed; skipping UpSet plot"
+    )
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 # RPM normalisation (using CIRCexplorer2 BSJ count as primary; CIRI2 kept for reference)
 consensus["cx2_RPM"]   = (consensus["cx2_BSJ"]   / total_mapped) * 1e6
